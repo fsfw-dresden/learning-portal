@@ -154,10 +154,10 @@ class HighlightOverlay(QWidget):
                 
                 # Position the text block
                 block_x = self.highlight_point.x() + radius + 20
-                block_y = self.highlight_point.y() - (total_height / 2)
+                block_y = int(self.highlight_point.y() - (total_height / 2))
                 
                 # Draw background with rounded corners
-                text_bg = QRect(block_x, block_y, text_width, total_height)
+                text_bg = QRect(int(block_x), block_y, int(text_width), int(total_height))
                 painter.setPen(Qt.NoPen)
                 painter.setBrush(QColor(0, 0, 0, 180))
                 painter.drawRoundedRect(text_bg, 10, 10)
