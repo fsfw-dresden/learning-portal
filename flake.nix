@@ -50,6 +50,7 @@
                 google-auth
                 tiktoken
                 tokenizers
+                jiter
               ];
               
               doCheck = false;
@@ -89,6 +90,7 @@
                 distro
                 tiktoken
                 tokenizers
+                jiter
               ];
               
               doCheck = false;
