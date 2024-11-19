@@ -30,6 +30,10 @@
                 sha256 = "sha256-mfaIJleV2qe6klbuaOry8F1TzZnXQX9KDC3CksEG0Ao=";
               };
               
+              nativeBuildInputs = with pkgs.python3Packages; [
+                hatchling
+              ];
+              
               propagatedBuildInputs = with pkgs.python3Packages; [
                 httpx
                 pydantic
@@ -69,6 +73,10 @@
                 inherit pname version;
                 sha256 = "sha256-mfaIJleV2qe6klbuaOry8F1TzZnXQX9KDC3CksEG0Ao=";
               };
+              
+              nativeBuildInputs = with python3.pkgs; [
+                hatchling
+              ];
               
               propagatedBuildInputs = with python3.pkgs; [
                 httpx
