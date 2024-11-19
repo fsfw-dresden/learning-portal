@@ -59,7 +59,12 @@ class VisionAssistant:
             betas=["computer-use-2024-10-22"],
         )
         
-        return response.content
+            return response.content
+            
+        except UnidentifiedImageError:
+            raise ValueError("Could not open or identify the screenshot image")
+        except Exception as e:
+            raise RuntimeError(f"Error during vision analysis: {str(e)}")
 
 class HighlightOverlay(QWidget):
     def __init__(self, parent=None):
