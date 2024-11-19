@@ -19,8 +19,26 @@
           
           propagatedBuildInputs = with pkgs.python3Packages; [
             pyqt5
-            anthropic
             pillow
+            (buildPythonPackage rec {
+              pname = "anthropic";
+              version = "0.18.1";  # Latest stable version
+              format = "pyproject";
+              
+              src = fetchPypi {
+                inherit pname version;
+                sha256 = "sha256-Hs+T8VpLGvkHQhzszjVJJsRoXb2r5vXZwFkRiHmhxQE=";
+              };
+              
+              propagatedBuildInputs = with pkgs.python3Packages; [
+                httpx
+                pydantic
+                typing-extensions
+                distro
+              ];
+              
+              doCheck = false;
+            })
           ];
           
           nativeBuildInputs = with pkgs; [
@@ -34,7 +52,25 @@
           buildInputs = with pkgs; [
             python3
             python3Packages.pyqt5
-            python3Packages.anthropic
+            (python3.pkgs.buildPythonPackage rec {
+              pname = "anthropic";
+              version = "0.18.1";
+              format = "pyproject";
+              
+              src = python3.pkgs.fetchPypi {
+                inherit pname version;
+                sha256 = "sha256-Hs+T8VpLGvkHQhzszjVJJsRoXb2r5vXZwFkRiHmhxQE=";
+              };
+              
+              propagatedBuildInputs = with python3.pkgs; [
+                httpx
+                pydantic
+                typing-extensions
+                distro
+              ];
+              
+              doCheck = false;
+            })
             python3Packages.pillow
           ];
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
