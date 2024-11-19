@@ -1,6 +1,7 @@
 import os
 import base64
 import anthropic
+from response_models import VisionResponse
 from PIL import Image, UnidentifiedImageError
 import io
 from PyQt5.QtCore import QPoint, QRect
@@ -60,7 +61,7 @@ class VisionAssistant:
             betas=["computer-use-2024-10-22"],
         )
         
-            return response.content
+            return VisionResponse.from_claude_response(response.content[0].text)
             
         except UnidentifiedImageError:
             raise ValueError("Could not open or identify the screenshot image")
