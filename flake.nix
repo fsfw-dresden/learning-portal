@@ -36,9 +36,13 @@
                 typing-extensions
                 distro
                 boto3
-                google-cloud-aiplatform
+                google-cloud-core
+                google-api-core
+                google-auth
                 boto3
-                google-cloud-aiplatform
+                google-cloud-core
+                google-api-core
+                google-auth
               ];
               
               doCheck = false;
