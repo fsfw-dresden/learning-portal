@@ -1,5 +1,8 @@
 import sys
+import os
+import logging
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
+from vision_assistant import VisionAssistant
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
                         QScreen)
@@ -13,6 +16,17 @@ class CircularWindow(QWidget):
         # Enable transparency
         self.setAttribute(Qt.WA_TranslucentBackground)
         
+        # Setup logging
+        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize vision assistant
+        try:
+            self.vision_assistant = VisionAssistant()
+        except ValueError as e:
+            self.logger.error(f"Failed to initialize VisionAssistant: {e}")
+            self.vision_assistant = None
+            
         self.initUI()
         
     def initUI(self):
@@ -54,6 +68,7 @@ class CircularWindow(QWidget):
         """)
         self.search_btn.resize(30, 30)
         self.search_btn.move(150, 85)
+        self.search_btn.clicked.connect(self.analyze_screenshot)
         
         # Add screenshot button
         self.screenshot_btn = QPushButton("📸", self)
@@ -112,6 +127,22 @@ class CircularWindow(QWidget):
         screen = QApplication.primaryScreen()
         screenshot = screen.grabWindow(0)
         screenshot.save("shot01.png")
+        
+    def analyze_screenshot(self):
+        if not self.vision_assistant:
+            self.logger.error("Vision Assistant not initialized")
+            return
+            
+        question = self.search_input.text()
+        if not question:
+            self.logger.warning("No search query provided")
+            return
+            
+        try:
+            response = self.vision_assistant.analyze_screenshot("shot01.png", question)
+            self.logger.info(f"Vision analysis response: {response}")
+        except Exception as e:
+            self.logger.error(f"Error during vision analysis: {e}")
 
 def main():
     app = QApplication(sys.argv)
