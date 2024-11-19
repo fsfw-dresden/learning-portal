@@ -22,7 +22,7 @@
             pillow
             (buildPythonPackage rec {
               pname = "anthropic";
-              version = "0.18.1";  # Latest stable version
+              version = "0.37.1";
               format = "pyproject";
               
               src = fetchPypi {
@@ -35,6 +35,10 @@
                 pydantic
                 typing-extensions
                 distro
+                boto3
+                google-cloud-aiplatform
+                boto3
+                google-cloud-aiplatform
               ];
               
               doCheck = false;
@@ -54,7 +58,7 @@
             python3Packages.pyqt5
             (python3.pkgs.buildPythonPackage rec {
               pname = "anthropic";
-              version = "0.18.1";
+              version = "0.37.1";
               format = "pyproject";
               
               src = python3.pkgs.fetchPypi {

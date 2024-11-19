@@ -6,7 +6,7 @@ setup(
     py_modules=["main", "vision_assistant"],
     install_requires=[
         "PyQt5",
-        "anthropic-sdk",
+        "anthropic[bedrock,vertex]>=0.37.1",
         "pillow",
     ],
     entry_points={
