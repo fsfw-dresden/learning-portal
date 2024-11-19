@@ -135,27 +135,40 @@ class HighlightOverlay(QWidget):
             
             # Draw instructions
             if self.instructions:
-                # Calculate text height first
+                # Set up text formatting
                 font = painter.font()
                 font.setPointSize(10)
+                font.setWeight(75)  # Make text slightly bold
                 painter.setFont(font)
                 
-                total_height = 0
-                for instruction in self.instructions:
-                    text_rect = QRect(0, 0, 290, 1000)  # Temporary rect for measurement
-                    bound_rect = painter.boundingRect(text_rect, Qt.TextWordWrap, instruction)
-                    total_height += bound_rect.height() + 5
+                # Fixed width for text block
+                text_width = 300
+                padding = 15
                 
-                # Create semi-transparent background for text
-                text_bg = QRect(self.highlight_point.x() + radius + 10,
-                              self.highlight_point.y() - 30,
-                              300, total_height + 20)  # Add padding
-                painter.fillRect(text_bg, QColor(0, 0, 0, 128))
+                # Calculate total height needed
+                total_height = padding
+                for instruction in self.instructions:
+                    text_rect = QRect(0, 0, text_width - (padding * 2), 1000)
+                    bound_rect = painter.boundingRect(text_rect, Qt.TextWordWrap | Qt.AlignLeft, instruction)
+                    total_height += bound_rect.height() + padding
+                
+                # Position the text block
+                block_x = self.highlight_point.x() + radius + 20
+                block_y = self.highlight_point.y() - (total_height / 2)
+                
+                # Draw background with rounded corners
+                text_bg = QRect(block_x, block_y, text_width, total_height)
+                painter.setPen(Qt.NoPen)
+                painter.setBrush(QColor(0, 0, 0, 180))
+                painter.drawRoundedRect(text_bg, 10, 10)
                 
                 # Draw text
                 painter.setPen(QColor(255, 255, 255))
-                y_offset = text_bg.y() + 10  # Initial padding
+                y_pos = block_y + padding
                 for instruction in self.instructions:
-                    text_rect = QRect(text_bg.x() + 5, y_offset, 290, 1000)
-                    bound_rect = painter.drawText(text_rect, Qt.TextWordWrap, instruction)
-                    y_offset += bound_rect.height() + 5
+                    text_rect = QRect(block_x + padding, y_pos, 
+                                    text_width - (padding * 2), 1000)
+                    bound_rect = painter.drawText(text_rect, 
+                                               Qt.TextWordWrap | Qt.AlignLeft | Qt.TextJustificationForced,
+                                               instruction)
+                    y_pos += bound_rect.height() + padding
