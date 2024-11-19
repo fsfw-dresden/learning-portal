@@ -6,6 +6,8 @@ setup(
     py_modules=["main"],
     install_requires=[
         "PyQt5",
+        "anthropic-sdk",
+        "pillow",
     ],
     entry_points={
         "console_scripts": [
