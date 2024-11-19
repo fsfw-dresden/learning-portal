@@ -87,6 +87,23 @@ class CircularWindow(QWidget):
         self.screenshot_btn.move(10, 10)
         self.screenshot_btn.clicked.connect(self.take_screenshot)
         
+        # Add show last hint button
+        self.show_hint_btn = QPushButton("💡", self)
+        self.show_hint_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 100);
+                border: none;
+                border-radius: 10px;
+                padding: 5px;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 150);
+            }
+        """)
+        self.show_hint_btn.move(45, 10)
+        self.show_hint_btn.clicked.connect(self.show_last_hint)
+        
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
@@ -128,6 +145,11 @@ class CircularWindow(QWidget):
         screenshot = screen.grabWindow(0)
         screenshot.save("shot01.png")
         
+    def show_last_hint(self):
+        """Show the last hint if available"""
+        if hasattr(self, 'highlight_overlay'):
+            self.highlight_overlay.show_last_hint()
+            
     def analyze_screenshot(self):
         if not self.vision_assistant:
             self.logger.error("Vision Assistant not initialized")

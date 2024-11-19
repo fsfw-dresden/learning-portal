@@ -75,8 +75,10 @@ class HighlightOverlay(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.highlight_point = None
+        self.last_highlight_point = None
         self.opacity = 1.0
         self.instructions = []
+        self.last_instructions = []
         
         # Setup fade out animation
         self.fade_animation = QPropertyAnimation(self, b"windowOpacity")
@@ -94,7 +96,9 @@ class HighlightOverlay(QWidget):
     def set_highlight(self, point, instructions=None):
         """Set the point to highlight with a circle and display instructions"""
         self.highlight_point = QPoint(point[0], point[1])
+        self.last_highlight_point = self.highlight_point
         self.instructions = instructions if instructions else []
+        self.last_instructions = self.instructions
         self.setWindowOpacity(1.0)
         self.show()
         self.update()
@@ -106,6 +110,17 @@ class HighlightOverlay(QWidget):
     def start_fade_out(self):
         """Start the fade out animation"""
         self.fade_animation.start()
+        
+    def show_last_hint(self):
+        """Show the last shown hint again"""
+        if self.last_highlight_point and self.last_instructions:
+            self.highlight_point = self.last_highlight_point
+            self.instructions = self.last_instructions
+            self.setWindowOpacity(1.0)
+            self.show()
+            self.update()
+            self.hide_timer.stop()
+            self.hide_timer.start(10000)
         
     def paintEvent(self, event):
         if self.highlight_point:
@@ -120,21 +135,27 @@ class HighlightOverlay(QWidget):
             
             # Draw instructions
             if self.instructions:
-                # Create semi-transparent background for text
-                text_bg = QRect(self.highlight_point.x() + radius + 10,
-                              self.highlight_point.y() - 30,
-                              300, len(self.instructions) * 25 + 10)
-                painter.fillRect(text_bg, QColor(0, 0, 0, 128))
-                
-                # Draw text
-                painter.setPen(QColor(255, 255, 255))
+                # Calculate text height first
                 font = painter.font()
                 font.setPointSize(10)
                 painter.setFont(font)
                 
-                y_offset = text_bg.y() + 20
+                total_height = 0
                 for instruction in self.instructions:
-                    # Use drawText with a rectangle to enable text wrapping
-                    text_rect = QRect(text_bg.x() + 5, y_offset, 290, 60)
-                    actual_rect = painter.drawText(text_rect, Qt.TextWordWrap, instruction)
-                    y_offset += actual_rect.height() + 5
+                    text_rect = QRect(0, 0, 290, 1000)  # Temporary rect for measurement
+                    bound_rect = painter.boundingRect(text_rect, Qt.TextWordWrap, instruction)
+                    total_height += bound_rect.height() + 5
+                
+                # Create semi-transparent background for text
+                text_bg = QRect(self.highlight_point.x() + radius + 10,
+                              self.highlight_point.y() - 30,
+                              300, total_height + 20)  # Add padding
+                painter.fillRect(text_bg, QColor(0, 0, 0, 128))
+                
+                # Draw text
+                painter.setPen(QColor(255, 255, 255))
+                y_offset = text_bg.y() + 10  # Initial padding
+                for instruction in self.instructions:
+                    text_rect = QRect(text_bg.x() + 5, y_offset, 290, 1000)
+                    bound_rect = painter.drawText(text_rect, Qt.TextWordWrap, instruction)
+                    y_offset += bound_rect.height() + 5
