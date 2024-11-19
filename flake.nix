@@ -48,7 +48,7 @@
                 google-cloud-core
                 google-api-core
                 google-auth
-                jiter
+                tiktoken
                 tokenizers
               ];
               
@@ -87,7 +87,7 @@
                 pydantic
                 typing-extensions
                 distro
-                jiter
+                tiktoken
                 tokenizers
               ];
               
