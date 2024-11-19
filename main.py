@@ -141,6 +141,19 @@ class CircularWindow(QWidget):
         try:
             response = self.vision_assistant.analyze_screenshot("shot01.png", question)
             self.logger.info(f"Vision analysis response: {response}")
+            
+            # Create and show highlight overlay
+            if not hasattr(self, 'highlight_overlay'):
+                self.highlight_overlay = HighlightOverlay()
+            
+            # Get screen geometry to position overlay
+            screen = QApplication.primaryScreen()
+            screen_geometry = screen.geometry()
+            self.highlight_overlay.setGeometry(screen_geometry)
+            
+            # Show the highlight at the specified coordinates
+            self.highlight_overlay.set_highlight(response.look_at_coordinates)
+            
         except Exception as e:
             self.logger.error(f"Error during vision analysis: {e}")
 

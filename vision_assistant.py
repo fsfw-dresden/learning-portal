@@ -4,7 +4,7 @@ import anthropic
 from response_models import VisionResponse
 from PIL import Image, UnidentifiedImageError
 import io
-from PyQt5.QtCore import QPoint, QRect
+from PyQt5.QtCore import QPoint, QRect, QTimer, Qt, QPropertyAnimation, QEasingCurve
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPainter, QColor
 
@@ -74,11 +74,35 @@ class HighlightOverlay(QWidget):
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.highlight_point = None
+        self.opacity = 1.0
+        
+        # Setup fade out animation
+        self.fade_animation = QPropertyAnimation(self, b"windowOpacity")
+        self.fade_animation.setDuration(1000)  # 1 second fade
+        self.fade_animation.setStartValue(1.0)
+        self.fade_animation.setEndValue(0.0)
+        self.fade_animation.setEasingCurve(QEasingCurve.InOutQuad)
+        self.fade_animation.finished.connect(self.hide)
+        
+        # Setup timer for auto-hide
+        self.hide_timer = QTimer(self)
+        self.hide_timer.setSingleShot(True)
+        self.hide_timer.timeout.connect(self.start_fade_out)
         
     def set_highlight(self, point):
         """Set the point to highlight with a circle"""
         self.highlight_point = QPoint(point[0], point[1])
+        self.setWindowOpacity(1.0)
+        self.show()
         self.update()
+        
+        # Reset and start the hide timer
+        self.hide_timer.stop()
+        self.hide_timer.start(10000)  # 10 seconds
+        
+    def start_fade_out(self):
+        """Start the fade out animation"""
+        self.fade_animation.start()
         
     def paintEvent(self, event):
         if self.highlight_point:
