@@ -15,6 +15,7 @@
           pname = "hello-pyqt";
           version = "0.1.0";
           src = ./.;
+          format = "setuptools";
           
           propagatedBuildInputs = with pkgs.python3Packages; [
             pyqt5
@@ -23,6 +24,8 @@
           nativeBuildInputs = with pkgs; [
             qt5.wrapQtAppsHook
           ];
+
+          doCheck = false;  # Skip tests since we don't have any
         };
 
         devShell = pkgs.mkShell {
