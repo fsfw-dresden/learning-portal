@@ -48,6 +48,8 @@
                 google-cloud-core
                 google-api-core
                 google-auth
+                jiter
+                tokenizers
               ];
               
               doCheck = false;
@@ -85,6 +87,8 @@
                 pydantic
                 typing-extensions
                 distro
+                jiter
+                tokenizers
               ];
               
               doCheck = false;
