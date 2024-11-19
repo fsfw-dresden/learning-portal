@@ -1,4 +1,5 @@
 import os
+import base64
 import anthropic
 from PIL import Image, UnidentifiedImageError
 import io
@@ -23,9 +24,9 @@ class VisionAssistant:
             with Image.open(screenshot_path) as img:
                 screen_width, screen_height = img.size
             
-            # Read image bytes
+            # Read image bytes and convert to base64
             with open(screenshot_path, 'rb') as img_file:
-                img_bytes = img_file.read()
+                img_bytes = base64.b64encode(img_file.read()).decode('utf-8')
             
             response = self.client.beta.messages.create(
             model="claude-3-5-sonnet-20241022",
