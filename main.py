@@ -151,8 +151,8 @@ class CircularWindow(QWidget):
             screen_geometry = screen.geometry()
             self.highlight_overlay.setGeometry(screen_geometry)
             
-            # Show the highlight at the specified coordinates
-            self.highlight_overlay.set_highlight(response.look_at_coordinates)
+            # Show the highlight at the specified coordinates with instructions
+            self.highlight_overlay.set_highlight(response.look_at_coordinates, response.instructions)
             
         except Exception as e:
             self.logger.error(f"Error during vision analysis: {e}")

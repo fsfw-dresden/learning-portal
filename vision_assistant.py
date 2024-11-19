@@ -72,9 +72,11 @@ class HighlightOverlay(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.highlight_point = None
         self.opacity = 1.0
+        self.instructions = []
         
         # Setup fade out animation
         self.fade_animation = QPropertyAnimation(self, b"windowOpacity")
@@ -89,9 +91,10 @@ class HighlightOverlay(QWidget):
         self.hide_timer.setSingleShot(True)
         self.hide_timer.timeout.connect(self.start_fade_out)
         
-    def set_highlight(self, point):
-        """Set the point to highlight with a circle"""
+    def set_highlight(self, point, instructions=None):
+        """Set the point to highlight with a circle and display instructions"""
         self.highlight_point = QPoint(point[0], point[1])
+        self.instructions = instructions if instructions else []
         self.setWindowOpacity(1.0)
         self.show()
         self.update()
@@ -114,3 +117,20 @@ class HighlightOverlay(QWidget):
             painter.setPen(QColor(255, 255, 0, 150))
             radius = 30
             painter.drawEllipse(self.highlight_point, radius, radius)
+            
+            # Draw instructions
+            if self.instructions:
+                # Create semi-transparent background for text
+                text_bg = QRect(self.highlight_point.x() + radius + 10,
+                              self.highlight_point.y() - 30,
+                              300, len(self.instructions) * 25 + 10)
+                painter.fillRect(text_bg, QColor(0, 0, 0, 128))
+                
+                # Draw text
+                painter.setPen(QColor(255, 255, 255))
+                for i, instruction in enumerate(self.instructions):
+                    painter.drawText(
+                        text_bg.x() + 5,
+                        text_bg.y() + 20 + (i * 20),
+                        instruction
+                    )
