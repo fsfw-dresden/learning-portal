@@ -1,7 +1,8 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter, QPainterPath, QColor, QMovie, QRegion
+from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
+                        QScreen)
 
 
 class CircularWindow(QWidget):
@@ -28,6 +29,23 @@ class CircularWindow(QWidget):
         self.label.setStyleSheet("color: white;")
         self.label.resize(200, 200)
         self.label.setAttribute(Qt.WA_TransparentForMouseEvents)  # Let mouse events pass through
+        
+        # Add screenshot button
+        self.screenshot_btn = QPushButton("📸", self)
+        self.screenshot_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 100);
+                border: none;
+                border-radius: 10px;
+                padding: 5px;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 150);
+            }
+        """)
+        self.screenshot_btn.move(10, 10)
+        self.screenshot_btn.clicked.connect(self.take_screenshot)
         
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -64,6 +82,11 @@ class CircularWindow(QWidget):
         delta = event.globalPos() - self.oldPos
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = event.globalPos()
+        
+    def take_screenshot(self):
+        screen = QApplication.primaryScreen()
+        screenshot = screen.grabWindow(0)
+        screenshot.save("shot01.png")
 
 def main():
     app = QApplication(sys.argv)
