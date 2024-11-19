@@ -128,9 +128,13 @@ class HighlightOverlay(QWidget):
                 
                 # Draw text
                 painter.setPen(QColor(255, 255, 255))
-                for i, instruction in enumerate(self.instructions):
-                    painter.drawText(
-                        text_bg.x() + 5,
-                        text_bg.y() + 20 + (i * 20),
-                        instruction
-                    )
+                font = painter.font()
+                font.setPointSize(10)
+                painter.setFont(font)
+                
+                y_offset = text_bg.y() + 20
+                for instruction in self.instructions:
+                    # Use drawText with a rectangle to enable text wrapping
+                    text_rect = QRect(text_bg.x() + 5, y_offset, 290, 60)
+                    actual_rect = painter.drawText(text_rect, Qt.TextWordWrap, instruction)
+                    y_offset += actual_rect.height() + 5
