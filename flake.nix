@@ -19,6 +19,8 @@
           
           propagatedBuildInputs = with pkgs.python3Packages; [
             pyqt5
+            anthropic
+            pillow
           ];
           
           nativeBuildInputs = with pkgs; [
@@ -32,6 +34,8 @@
           buildInputs = with pkgs; [
             python3
             python3Packages.pyqt5
+            python3Packages.anthropic
+            python3Packages.pillow
           ];
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
         };
