@@ -32,6 +32,7 @@
               
               nativeBuildInputs = with pkgs.python3Packages; [
                 hatchling
+                hatch-fancy-pypi-readme
               ];
               
               propagatedBuildInputs = with pkgs.python3Packages; [
@@ -76,6 +77,7 @@
               
               nativeBuildInputs = with python3.pkgs; [
                 hatchling
+                hatch-fancy-pypi-readme
               ];
               
               propagatedBuildInputs = with python3.pkgs; [
