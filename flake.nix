@@ -27,7 +27,7 @@
               
               src = fetchPypi {
                 inherit pname version;
-                sha256 = "sha256-Hs+T8VpLGvkHQhzszjVJJsRoXb2r5vXZwFkRiHmhxQE=";
+                sha256 = "sha256-mfaIJleV2qe6klbuaOry8F1TzZnXQX9KDC3CksEG0Ao=";
               };
               
               propagatedBuildInputs = with pkgs.python3Packages; [
@@ -67,7 +67,7 @@
               
               src = python3.pkgs.fetchPypi {
                 inherit pname version;
-                sha256 = "sha256-Hs+T8VpLGvkHQhzszjVJJsRoXb2r5vXZwFkRiHmhxQE=";
+                sha256 = "sha256-mfaIJleV2qe6klbuaOry8F1TzZnXQX9KDC3CksEG0Ao=";
               };
               
               propagatedBuildInputs = with python3.pkgs; [
