@@ -11,8 +11,8 @@ from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
 class CircularWindow(QWidget):
     def __init__(self):
         super().__init__()
-        # Remove window decorations
-        self.setWindowFlags(Qt.FramelessWindowHint)
+        # Remove window decorations and make window stay on top
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         # Enable transparency
         self.setAttribute(Qt.WA_TranslucentBackground)
         
@@ -141,9 +141,11 @@ class CircularWindow(QWidget):
         self.oldPos = event.globalPos()
         
     def take_screenshot(self):
+        self.logger.info("Taking screenshot...")
         screen = QApplication.primaryScreen()
         screenshot = screen.grabWindow(0)
         screenshot.save("shot01.png")
+        self.logger.info("Screenshot saved as shot01.png")
         
     def show_last_hint(self):
         """Show the last hint if available"""
@@ -161,6 +163,7 @@ class CircularWindow(QWidget):
             return
             
         try:
+            self.logger.info(f"Sending prompt to AI: {question}")
             response = self.vision_assistant.analyze_screenshot("shot01.png", question)
             self.logger.info(f"Vision analysis response: {response}")
             
