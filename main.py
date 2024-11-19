@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
-from vision_assistant import VisionAssistant
+from vision_assistant import VisionAssistant, HighlightOverlay
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
                         QScreen)
