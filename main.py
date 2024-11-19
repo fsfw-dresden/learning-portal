@@ -37,28 +37,25 @@ class CircularWindow(QWidget):
         path = QPainterPath()
         path.addEllipse(0, 0, self.width(), self.height())
         
-        # Enable composition
+        # Set up alpha mask composition
         painter.setCompositionMode(QPainter.CompositionMode_Source)
         
-        # Clear the background
+        # Clear everything to transparent first
         painter.fillRect(self.rect(), Qt.transparent)
         
-        # Switch to normal composition for content
-        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-        
-        # Set the clip path
-        painter.setClipPath(path)
-        
-        # Draw the current movie frame
+        # Draw the current movie frame within the clip path
         if self.movie and self.movie.currentPixmap():
+            painter.setClipPath(path)
+            painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
             painter.drawPixmap(0, 0, self.movie.currentPixmap().scaled(
                 self.width(), self.height(),
                 Qt.KeepAspectRatioByExpanding,
                 Qt.SmoothTransformation
             ))
-        
-        # Set semi-transparent overlay
-        painter.fillPath(path, QColor(0, 0, 0, 120))  # RGBA: Black with 47% opacity
+            
+        # Use black as the alpha mask
+        painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+        painter.fillPath(path, QColor(0, 0, 0, 180))  # Black controls opacity
 
     def mousePressEvent(self, event):
         self.oldPos = event.globalPos()
