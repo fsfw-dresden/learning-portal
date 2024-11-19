@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
                         QScreen)
@@ -23,12 +23,37 @@ class CircularWindow(QWidget):
         self.movie.frameChanged.connect(self.repaint)
         self.movie.start()
         
-        # Add text label
-        self.label = QLabel("Hello,\nWorld!", self)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.label.setStyleSheet("color: white;")
-        self.label.resize(200, 200)
-        self.label.setAttribute(Qt.WA_TransparentForMouseEvents)  # Let mouse events pass through
+        # Add search input
+        self.search_input = QLineEdit(self)
+        self.search_input.setStyleSheet("""
+            QLineEdit {
+                background-color: transparent;
+                border: 2px solid white;
+                border-radius: 15px;
+                padding: 5px 15px;
+                color: white;
+                selection-background-color: rgba(255, 255, 255, 50);
+            }
+        """)
+        self.search_input.resize(120, 30)
+        self.search_input.move(20, 85)
+        
+        # Add search button
+        self.search_btn = QPushButton("🔍", self)
+        self.search_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: 2px solid white;
+                border-radius: 15px;
+                padding: 5px;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 50);
+            }
+        """)
+        self.search_btn.resize(30, 30)
+        self.search_btn.move(150, 85)
         
         # Add screenshot button
         self.screenshot_btn = QPushButton("📸", self)
