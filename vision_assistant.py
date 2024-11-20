@@ -135,6 +135,9 @@ class HighlightOverlay(QWidget):
             
             # Draw instructions
             if self.instructions:
+                # Ensure instructions is a list
+                if not isinstance(self.instructions, list):
+                    self.instructions = [self.instructions]
                 # Set up text formatting
                 font = painter.font()
                 font.setPointSize(10)
