@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEd
 from vision_assistant import VisionAssistant, HighlightOverlay
 from PyQt5.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
-                        QScreen, QIcon)
+                        QScreen, QIcon, QPixmap)
 
 
 class CircularWindow(QWidget):
@@ -43,10 +43,13 @@ class CircularWindow(QWidget):
     def initUI(self):
         self.setGeometry(self.circular_geometry)
         
-        # Add background animation
+        # Add background animation for circular view
         self.movie = QMovie("./cloud.webp")
         self.movie.frameChanged.connect(self.repaint)
         self.movie.start()
+        
+        # Load static background for expanded view
+        self.night_bg = QPixmap("./night.jpg")
         
         # Add search input
         self.search_input = QLineEdit(self)
@@ -100,15 +103,24 @@ class CircularWindow(QWidget):
         # Clear everything to transparent first
         painter.fillRect(self.rect(), Qt.transparent)
         
-        # Draw the current movie frame within the clip path
-        if self.movie and self.movie.currentPixmap():
-            painter.setClipPath(path)
-            painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-            painter.drawPixmap(0, 0, self.movie.currentPixmap().scaled(
+        painter.setClipPath(path)
+        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        
+        if self.is_expanded:
+            # Draw static night background when expanded
+            painter.drawPixmap(0, 0, self.night_bg.scaled(
                 self.width(), self.height(),
                 Qt.KeepAspectRatioByExpanding,
                 Qt.SmoothTransformation
             ))
+        else:
+            # Draw animated cloud background when circular
+            if self.movie and self.movie.currentPixmap():
+                painter.drawPixmap(0, 0, self.movie.currentPixmap().scaled(
+                    self.width(), self.height(),
+                    Qt.KeepAspectRatioByExpanding,
+                    Qt.SmoothTransformation
+                ))
             
         # Use black as the alpha mask
         painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
