@@ -14,6 +14,21 @@ class VisionAssistant:
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
         self.client = anthropic.Anthropic(api_key=api_key)
+        self.scale_factor = 1  # Store scaling factor for coordinate translation
+        
+    def _get_scale_factor(self, width: int, height: int) -> int:
+        """Determine optimal scaling factor for high resolution displays"""
+        target_width = 1920  # Target width for reasonable resolution
+        
+        if width <= target_width:
+            return 1
+            
+        # Find the smallest factor (2, 3, or 4) that gets us close to target
+        for factor in [2, 3, 4]:
+            if width / factor <= target_width:
+                return factor
+        
+        return 4  # Max scale factor if still too large
         
     def analyze_screenshot(self, screenshot_path, user_question):
         """
@@ -21,13 +36,23 @@ class VisionAssistant:
         and return guidance information
         """
         try:
-            # Get screenshot dimensions
+            # Open and potentially resize the image
             with Image.open(screenshot_path) as img:
+                original_width, original_height = img.size
+                self.scale_factor = self._get_scale_factor(original_width, original_height)
+                
+                if self.scale_factor > 1:
+                    new_size = (
+                        original_width // self.scale_factor,
+                        original_height // self.scale_factor
+                    )
+                    img = img.resize(new_size, Image.Resampling.LANCZOS)
+                    
+                # Convert to bytes
+                img_buffer = io.BytesIO()
+                img.save(img_buffer, format='PNG')
+                img_bytes = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
                 screen_width, screen_height = img.size
-            
-            # Read image bytes and convert to base64
-            with open(screenshot_path, 'rb') as img_file:
-                img_bytes = base64.b64encode(img_file.read()).decode('utf-8')
             
             response = self.client.beta.messages.create(
             model="claude-3-5-sonnet-20241022",
@@ -61,7 +86,13 @@ class VisionAssistant:
             betas=["computer-use-2024-10-22"],
         )
         
-            return VisionResponse.from_claude_response(response.content[0].text)
+            # Get response and scale coordinates back up if needed
+            vision_response = VisionResponse.from_claude_response(response.content[0].text)
+            if self.scale_factor > 1:
+                vision_response.look_at_coordinates = [
+                    coord * self.scale_factor for coord in vision_response.look_at_coordinates
+                ]
+            return vision_response
             
         except UnidentifiedImageError:
             raise ValueError("Could not open or identify the screenshot image")
