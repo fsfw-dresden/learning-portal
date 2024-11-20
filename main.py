@@ -1,11 +1,12 @@
 import sys
 import os
 import logging
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
+from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
+                            QMenu, QAction)
 from vision_assistant import VisionAssistant, HighlightOverlay
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
-                        QScreen)
+                        QScreen, QIcon)
 
 
 class CircularWindow(QWidget):
@@ -70,39 +71,9 @@ class CircularWindow(QWidget):
         self.search_btn.move(150, 85)
         self.search_btn.clicked.connect(self.analyze_screenshot)
         
-        # Add screenshot button
-        self.screenshot_btn = QPushButton("📸", self)
-        self.screenshot_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(255, 255, 255, 100);
-                border: none;
-                border-radius: 10px;
-                padding: 5px;
-                color: white;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 150);
-            }
-        """)
-        self.screenshot_btn.move(10, 10)
-        self.screenshot_btn.clicked.connect(self.take_screenshot)
-        
-        # Add show last hint button
-        self.show_hint_btn = QPushButton("💡", self)
-        self.show_hint_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(255, 255, 255, 100);
-                border: none;
-                border-radius: 10px;
-                padding: 5px;
-                color: white;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 150);
-            }
-        """)
-        self.show_hint_btn.move(45, 10)
-        self.show_hint_btn.clicked.connect(self.show_last_hint)
+        # Create context menu
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_context_menu)
         
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -133,7 +104,46 @@ class CircularWindow(QWidget):
         painter.fillPath(path, QColor(0, 0, 0, 180))  # Black controls opacity
 
     def mousePressEvent(self, event):
-        self.oldPos = event.globalPos()
+        if event.button() == Qt.LeftButton:
+            self.oldPos = event.globalPos()
+        elif event.button() == Qt.RightButton:
+            self.show_context_menu(event.pos())
+
+    def show_context_menu(self, pos):
+        """Show the context menu with screenshot and hint options"""
+        menu = QMenu(self)
+        menu.setStyleSheet("""
+            QMenu {
+                background-color: rgba(40, 40, 40, 240);
+                border: 1px solid rgba(255, 255, 255, 30);
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QMenu::item {
+                color: white;
+                padding: 5px 20px;
+                border-radius: 3px;
+            }
+            QMenu::item:selected {
+                background-color: rgba(255, 255, 255, 30);
+            }
+        """)
+        
+        # Screenshot action
+        screenshot_action = QAction(QIcon.fromTheme("camera-photo"), "Take Screenshot", self)
+        screenshot_action.triggered.connect(self.take_screenshot)
+        menu.addAction(screenshot_action)
+        
+        # Show last hint action
+        hint_action = QAction(QIcon.fromTheme("help-hint"), "Show Last Hint", self)
+        hint_action.triggered.connect(self.show_last_hint)
+        menu.addAction(hint_action)
+        
+        # Calculate menu position to be horizontally centered
+        menu_pos = self.mapToGlobal(pos)
+        menu_pos.setX(menu_pos.x() - menu.sizeHint().width() // 2)
+        
+        menu.exec_(menu_pos)
 
     def mouseMoveEvent(self, event):
         delta = event.globalPos() - self.oldPos
