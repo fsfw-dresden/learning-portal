@@ -1,6 +1,8 @@
-from PyQt5.QtWidgets import QWidget, QPushButton, QApplication
-from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
+from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QVBoxLayout
+from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QUrl
 from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtWebKitWidgets import QWebView
+import os
 
 class TutorView(QWidget):
     def __init__(self):
@@ -24,6 +26,17 @@ class TutorView(QWidget):
             self.expanded_width,
             screen.height()
         )
+        
+        # Create layout
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(20, 0, 0, 0)
+        
+        # Create web view
+        self.web_view = QWebView(self)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        tutorial_path = os.path.join(current_dir, "tutor", "freecad", "index.html")
+        self.web_view.load(QUrl.fromLocalFile(tutorial_path))
+        self.layout.addWidget(self.web_view)
         
         # Create toggle button
         self.toggle_btn = QPushButton("◀", self)
