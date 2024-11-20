@@ -4,6 +4,7 @@ import logging
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
 from vision_assistant import VisionAssistant, HighlightOverlay
+from tutor_view import TutorView
 from PyQt5.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
                         QScreen, QIcon, QPixmap)
@@ -12,6 +13,7 @@ from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
 class CircularWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.tutor_view = None
         # Remove window decorations and make window stay on top
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         # Enable transparency
@@ -169,6 +171,11 @@ class CircularWindow(QWidget):
         expand_action.triggered.connect(self.toggle_window_size)
         menu.addAction(expand_action)
         
+        # Show tutor view action
+        tutor_action = QAction(QIcon.fromTheme("help-contents"), "Show Tutor", self)
+        tutor_action.triggered.connect(self.show_tutor)
+        menu.addAction(tutor_action)
+        
         # Calculate menu position to be horizontally centered
         menu_pos = self.mapToGlobal(pos)
         menu_pos.setX(menu_pos.x() - menu.sizeHint().width() // 2)
@@ -223,6 +230,12 @@ class CircularWindow(QWidget):
         """Show the last hint if available"""
         if hasattr(self, 'highlight_overlay'):
             self.highlight_overlay.show_last_hint()
+            
+    def show_tutor(self):
+        """Show or create the tutor view"""
+        if not self.tutor_view:
+            self.tutor_view = TutorView()
+        self.tutor_view.show()
             
     def analyze_screenshot(self):
         if not self.vision_assistant:
