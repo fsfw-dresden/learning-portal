@@ -19,7 +19,7 @@
           
           propagatedBuildInputs = with pkgs.python3Packages; [
             pyqt5
-            pyqt5_with_qtwebkit
+            pyqtwebengine
             pillow
             (buildPythonPackage rec {
               pname = "anthropic";
@@ -69,7 +69,7 @@
           buildInputs = with pkgs; [
             python3
             python3Packages.pyqt5
-            python3Packages.pyqt5_with_qtwebkit
+            python3Packages.pyqtwebengine
             (python3.pkgs.buildPythonPackage rec {
               pname = "anthropic";
               version = "0.37.1";

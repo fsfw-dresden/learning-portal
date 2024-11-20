@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QVBoxLayout
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QUrl
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWebKitWidgets import QWebView
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 import os
 
 class TutorView(QWidget):
@@ -32,7 +32,7 @@ class TutorView(QWidget):
         self.layout.setContentsMargins(20, 0, 0, 0)
         
         # Create web view
-        self.web_view = QWebView(self)
+        self.web_view = QWebEngineView(self)
         current_dir = os.path.dirname(os.path.abspath(__file__))
         tutorial_path = os.path.join(current_dir, "tutor", "freecad", "index.html")
         self.web_view.load(QUrl.fromLocalFile(tutorial_path))
