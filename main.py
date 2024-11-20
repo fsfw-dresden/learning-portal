@@ -4,7 +4,7 @@ import logging
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
 from vision_assistant import VisionAssistant, HighlightOverlay
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
                         QScreen, QIcon)
 
@@ -16,6 +16,16 @@ class CircularWindow(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         # Enable transparency
         self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        # Window state
+        self.is_expanded = False
+        self.circular_geometry = QRect(100, 100, 200, 200)
+        self.expanded_geometry = QRect(100, 100, 600, 400)
+        
+        # Setup animations
+        self.geometry_animation = QPropertyAnimation(self, b"geometry")
+        self.geometry_animation.setDuration(300)
+        self.geometry_animation.setEasingCurve(QEasingCurve.InOutQuad)
         
         # Setup logging
         logging.basicConfig(level=logging.INFO)
@@ -31,7 +41,7 @@ class CircularWindow(QWidget):
         self.initUI()
         
     def initUI(self):
-        self.setGeometry(100, 100, 200, 200)
+        self.setGeometry(self.circular_geometry)
         
         # Add background animation
         self.movie = QMovie("./cloud.webp")
@@ -50,8 +60,7 @@ class CircularWindow(QWidget):
                 selection-background-color: rgba(255, 255, 255, 50);
             }
         """)
-        self.search_input.resize(120, 30)
-        self.search_input.move(20, 85)
+        self.update_search_input_geometry()
         
         # Add search button
         self.search_btn = QPushButton("🔍", self)
@@ -67,8 +76,7 @@ class CircularWindow(QWidget):
                 background-color: rgba(255, 255, 255, 50);
             }
         """)
-        self.search_btn.resize(30, 30)
-        self.search_btn.move(150, 85)
+        self.update_search_button_geometry()
         self.search_btn.clicked.connect(self.analyze_screenshot)
         
         # Create context menu
@@ -79,9 +87,12 @@ class CircularWindow(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # Create circular path
+        # Create path based on window state
         path = QPainterPath()
-        path.addEllipse(0, 0, self.width(), self.height())
+        if self.is_expanded:
+            path.addRoundedRect(0, 0, self.width(), self.height(), 20, 20)
+        else:
+            path.addEllipse(0, 0, self.width(), self.height())
         
         # Set up alpha mask composition
         painter.setCompositionMode(QPainter.CompositionMode_Source)
@@ -139,6 +150,13 @@ class CircularWindow(QWidget):
         hint_action.triggered.connect(self.show_last_hint)
         menu.addAction(hint_action)
         
+        # Toggle expand action
+        expand_action = QAction(QIcon.fromTheme("view-fullscreen"), 
+                              "Expand Window" if not self.is_expanded else "Collapse Window", 
+                              self)
+        expand_action.triggered.connect(self.toggle_window_size)
+        menu.addAction(expand_action)
+        
         # Calculate menu position to be horizontally centered
         menu_pos = self.mapToGlobal(pos)
         menu_pos.setX(menu_pos.x() - menu.sizeHint().width() // 2)
@@ -149,6 +167,38 @@ class CircularWindow(QWidget):
         delta = event.globalPos() - self.oldPos
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = event.globalPos()
+        
+    def toggle_window_size(self):
+        """Toggle between circular and expanded rectangular window"""
+        self.is_expanded = not self.is_expanded
+        
+        # Setup animation
+        self.geometry_animation.setStartValue(self.geometry())
+        target_geometry = self.expanded_geometry if self.is_expanded else self.circular_geometry
+        self.geometry_animation.setEndValue(target_geometry)
+        
+        # Start animation
+        self.geometry_animation.start()
+        
+        # Update UI elements
+        self.update_search_input_geometry()
+        self.update_search_button_geometry()
+        
+    def update_search_input_geometry(self):
+        """Update search input size and position based on window state"""
+        if self.is_expanded:
+            self.search_input.setGeometry(20, 20, 500, 60)
+            self.search_input.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        else:
+            self.search_input.setGeometry(20, 85, 120, 30)
+            self.search_input.setAlignment(Qt.AlignLeft)
+        
+    def update_search_button_geometry(self):
+        """Update search button size and position based on window state"""
+        if self.is_expanded:
+            self.search_btn.setGeometry(530, 20, 50, 60)
+        else:
+            self.search_btn.setGeometry(150, 85, 30, 30)
         
     def take_screenshot(self):
         self.logger.info("Taking screenshot...")
