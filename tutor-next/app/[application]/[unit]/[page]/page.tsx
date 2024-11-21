@@ -38,7 +38,7 @@ export async function generateStaticParams() {
 
 export default function Page({ params }: { params: { application: string, unit: string, page: string } }) {
   const { application, unit, page } = params
-  const markdownPath = path.join(process.cwd(), 'markdown', application, unit, `${page}.md`)
+  const markdownPath = path.join('markdown', application, unit, `${page}.md`)
   const fileContents = fs.readFileSync(markdownPath, 'utf8')
   const { data, content } = matter(fileContents)
   const htmlContent = md.render(content)
