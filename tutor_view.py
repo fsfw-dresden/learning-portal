@@ -31,8 +31,9 @@ class TutorView(QWidget):
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(20, 0, 0, 0)
         
-        # Create web view
+        # Create web view with transparent background
         self.web_view = QWebEngineView(self)
+        self.web_view.page().setBackgroundColor(Qt.transparent)
         calling_dir = os.getenv("PWD", os.getcwd())
         application = "inkscape"
         unit = "lektion1"
