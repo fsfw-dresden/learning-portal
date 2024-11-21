@@ -33,8 +33,12 @@ class TutorView(QWidget):
         
         # Create web view
         self.web_view = QWebEngineView(self)
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        tutorial_path = os.path.join(current_dir, "tutor", "freecad", "index.html")
+        calling_dir = os.getenv("PWD", os.getcwd())
+        application = "inkscape"
+        unit = "lektion1"
+        page = "intro"
+        tutorial_path = os.path.join(calling_dir, "tutor-next", "export", application, unit, page + ".html")
+        print(f"Loading tutorial from: {tutorial_path}")
         self.web_view.load(QUrl.fromLocalFile(tutorial_path))
         self.layout.addWidget(self.web_view)
         
@@ -63,7 +67,7 @@ class TutorView(QWidget):
     def update_button_position(self):
         """Update toggle button position based on expansion state"""
         self.toggle_btn.move(0, self.height() // 2 - 30)
-        self.toggle_btn.setText("◀" if self.is_expanded else "▶")
+        self.toggle_btn.setText("▶" if self.is_expanded else "◀")
         
     def toggle_expansion(self):
         """Toggle between expanded and collapsed states"""
