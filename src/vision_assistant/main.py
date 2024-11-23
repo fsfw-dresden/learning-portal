@@ -4,7 +4,7 @@ import logging
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
 from core.assets import Assets
-from vision_assistant.preferences import Preferences
+from core.preferences import Preferences
 from vision_assistant.vision import VisionAssistant, HighlightOverlay
 from vision_assistant.tutor import TutorView
 from PyQt5.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, QRect
