@@ -1,7 +1,7 @@
 import os
 import base64
 import anthropic
-from vision_assistant.env_helper import EnvHelper
+from core.env_helper import EnvHelper
 from vision_assistant.models import VisionResponse
 from PIL import Image, UnidentifiedImageError
 import io

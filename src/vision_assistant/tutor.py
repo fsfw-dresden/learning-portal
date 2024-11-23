@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QUrl
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 import os
-from vision_assistant.env_helper import EnvHelper
+from core.env_helper import EnvHelper
 
 class TutorView(QWidget):
     def __init__(self):
