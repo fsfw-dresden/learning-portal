@@ -25,7 +25,15 @@ def main():
     # Initialize translation
     translator = QTranslator()
     locale = QLocale()
-    translations_dir = os.path.join(os.path.dirname(__file__), "translations")
+    try:
+        # First try package installation path
+        import pkg_resources
+        translations_dir = pkg_resources.resource_filename('welcome', 'translations')
+    except (ImportError, pkg_resources.DistributionNotFound):
+        # Fallback to local development path
+        translations_dir = os.path.join(os.path.dirname(__file__), "translations")
+    
+    logger.info(f"Loading translations from: {translations_dir}")
     
     # Try loading translation in order of preference
     translation_loaded = False
