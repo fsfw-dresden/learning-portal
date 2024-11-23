@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
+os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
 from core.assets import Assets
