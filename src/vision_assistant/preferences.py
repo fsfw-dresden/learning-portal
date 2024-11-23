@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from enum import Enum
 from pathlib import Path
 import yaml
@@ -23,8 +23,8 @@ class UserPreferences:
 @dataclass
 class Preferences:
     """Combined user preferences"""
-    skill: SkillLevelPreferences = SkillLevelPreferences()
-    user: UserPreferences = UserPreferences()
+    skill: SkillLevelPreferences = field(default_factory=SkillLevelPreferences)
+    user: UserPreferences = field(default_factory=UserPreferences)
 
     @classmethod
     def load(cls) -> 'Preferences':
