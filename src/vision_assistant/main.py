@@ -3,6 +3,7 @@ import os
 import logging
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
+from core.assets import Assets
 from vision_assistant.preferences import Preferences
 from vision_assistant.vision import VisionAssistant, HighlightOverlay
 from vision_assistant.tutor import TutorView
@@ -48,12 +49,12 @@ class CircularWindow(QWidget):
         self.setGeometry(self.circular_geometry)
         
         # Add background animation for circular view
-        self.movie = QMovie("./cloud.webp")
+        self.movie = Assets.load_movie('cloud.webp')
         self.movie.frameChanged.connect(self.repaint)
         self.movie.start()
         
         # Load static background for expanded view
-        self.night_bg = QPixmap("./night.jpg")
+        self.night_bg = Assets.load_pixmap('night.jpg')
         
         # Add search input
         self.search_input = QLineEdit(self)
