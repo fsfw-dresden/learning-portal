@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from core.compile_translations import compile_translations
+from .compile_translations import compile_translations
 
 class CustomBuildHook:
     def initialize(self, version, build_data):
