@@ -9,6 +9,14 @@ def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
     
+    # Reduce Qt logging verbosity
+    qt_logger = logging.getLogger('PyQt5')
+    qt_logger.setLevel(logging.WARNING)
+    
+    # Reduce Qt logging verbosity
+    qt_logger = logging.getLogger('PyQt5')
+    qt_logger.setLevel(logging.WARNING)
+    
     app = QApplication(sys.argv)
     
     # Setup translation
