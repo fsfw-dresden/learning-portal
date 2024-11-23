@@ -3,7 +3,6 @@ from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QUrl
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 import os
-from core.env_helper import EnvHelper
 
 class TutorView(QWidget):
     def __init__(self):
@@ -35,8 +34,8 @@ class TutorView(QWidget):
         # Create web view with transparent background
         self.web_view = QWebEngineView(self)
         self.web_view.page().setBackgroundColor(Qt.transparent)
-        calling_dir = os.getenv("PWD", os.getcwd())
-        host = "https://tutor.schulstick.org" if EnvHelper.is_production() else "http://localhost:3000"
+        #calling_dir = os.getenv("PWD", os.getcwd())
+        host = "http://localhost:3000"
         application = "inkscape"
         unit = "lektion1"
         page = "intro"
