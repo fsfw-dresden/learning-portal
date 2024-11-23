@@ -22,25 +22,20 @@ def main():
     
     app = QApplication(sys.argv)
     
-    # Setup translation
+    # Create translator before any widgets
     translator = QTranslator()
-    system_locale = QLocale.system()
     
-    # Try to load system language first
-    logger.info(f"Attempting to load translation for system locale: {system_locale.name()}")
-    translation_path = os.path.join(os.path.dirname(__file__), "translations", "de.qm")
-    logger.info(f"Looking for translation file at: {translation_path}")
+    # Try to load translation using QLocale
+    if translator.load(QLocale(), 
+                      "welcome",  # base name
+                      "_",        # separator 
+                      os.path.join(os.path.dirname(__file__), "translations")):  # dir
+        logger.info(f"Successfully loaded translation for locale: {QLocale().name()}")
+        app.installTranslator(translator)
+    else:
+        logger.warning(f"Failed to load translation for locale: {QLocale().name()}")
     
-    if not translator.load(translation_path):
-        logger.warning(f"Failed to load translation from {translation_path}")
-        # Try absolute path as fallback
-        abs_path = os.path.abspath(translation_path)
-        logger.info(f"Trying absolute path: {abs_path}")
-        if not translator.load(abs_path):
-            logger.warning(f"Failed to load translation from absolute path")
-    
-    app.installTranslator(translator)
-    
+    # Create wizard after translator is set up
     wizard = WelcomeWizard()
     wizard.show()
     return app.exec_()
