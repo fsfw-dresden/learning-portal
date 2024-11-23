@@ -1,5 +1,6 @@
 import sys
 import os
+import os.path
 import logging
 os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
 from PyQt5.QtWidgets import QApplication
@@ -27,12 +28,16 @@ def main():
     
     # Try to load system language first
     logger.info(f"Attempting to load translation for system locale: {system_locale.name()}")
-    if not translator.load(system_locale, "de", "", ":/translations"):
+    translation_path = os.path.join(os.path.dirname(__file__), "translations/de.ts")
+    logger.info(f"Looking for translation file at: {translation_path}")
+    
+    if not translator.load(translation_path):
+        logger.warning(f"Failed to load translation from {translation_path}")
         # If system language fails, fallback to German
         logger.info("Falling back to German translation")
-        fallback_locale = QLocale(QLocale.German)
-        if not translator.load(fallback_locale, "de", "", ":/translations"):
-            logger.warning("Failed to load German translation")
+        fallback_path = os.path.join(os.path.dirname(__file__), "translations/de.ts")
+        if not translator.load(fallback_path):
+            logger.warning(f"Failed to load German translation from {fallback_path}")
     
     app.installTranslator(translator)
     
