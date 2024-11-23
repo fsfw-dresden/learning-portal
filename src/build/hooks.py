@@ -84,7 +84,8 @@ class CustomBuildHook(BuildHookInterface):
         for qm_file in src_dir.rglob('*.qm'):
             # Get relative path from src dir
             rel_path = qm_file.relative_to(src_dir)
-            # Copy to artifact
+            # Copy to artifact using relative paths
+            rel_path = qm_file.relative_to(src_dir)
             dest = Path(artifact_path) / rel_path
             dest.parent.mkdir(parents=True, exist_ok=True)
             import shutil
