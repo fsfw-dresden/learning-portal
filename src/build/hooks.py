@@ -30,6 +30,10 @@ def compile_translations(base_dir: Path) -> None:
             logger.warning(f"No .ts files found in {trans_dir}")
             continue
             
+        # Create translations directory in build output
+        output_dir = trans_dir
+        output_dir.mkdir(parents=True, exist_ok=True)
+            
         # Compile each .ts file
         for ts_file in ts_files:
             # Get base name without extension
@@ -45,7 +49,7 @@ def compile_translations(base_dir: Path) -> None:
                 module_name = ts_file.parent.parent.name
                 qm_name = f"{module_name}_{base_name}.qm"
                 
-            qm_file = ts_file.with_name(qm_name)
+            qm_file = output_dir / qm_name
             
             try:
                 subprocess.run(
@@ -70,3 +74,18 @@ class CustomBuildHook(BuildHookInterface):
         
         # Compile all translations recursively
         compile_translations(src_dir)
+        
+    def finalize(self, version, build_data, artifact_path):
+        """Ensure .qm files are included in the wheel"""
+        # Get the src directory path
+        src_dir = Path(__file__).parent.parent
+        
+        # Find all .qm files
+        for qm_file in src_dir.rglob('*.qm'):
+            # Get relative path from src dir
+            rel_path = qm_file.relative_to(src_dir)
+            # Copy to artifact
+            dest = Path(artifact_path) / rel_path
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            import shutil
+            shutil.copy2(qm_file, dest)
