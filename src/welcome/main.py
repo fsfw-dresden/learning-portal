@@ -1,5 +1,7 @@
 import sys
+import os
 import logging
+os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTranslator, QLocale
 from welcome.wizard import WelcomeWizard
