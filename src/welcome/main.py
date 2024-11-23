@@ -28,7 +28,7 @@ def main():
     
     # Try to load system language first
     logger.info(f"Attempting to load translation for system locale: {system_locale.name()}")
-    translation_path = os.path.join(os.path.dirname(__file__), "translations/de.ts")
+    translation_path = os.path.join(os.path.dirname(__file__), "translations/de.qm")
     logger.info(f"Looking for translation file at: {translation_path}")
     
     if not translator.load(translation_path):

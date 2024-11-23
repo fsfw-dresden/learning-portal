@@ -13,6 +13,13 @@ dependencies = [
     "setuptools",  # For pkg_resources
 ]
 
+[build-system]
+requires = ["hatchling", "PyQt5"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.hooks.custom]
+path = "src/welcome/build_translations.py"
+
 [project.gui-scripts]
 vision-assistant = "vision_assistant.main:main"
 welcome = "welcome.main:main"

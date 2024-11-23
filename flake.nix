@@ -17,7 +17,7 @@
           platformdirs
           qt-material
           setuptools  # Provides pkg_resources
-        ];
+        ] ++ [ pkgs.qt5.qttools ]; # Adds lrelease and other Qt tools
         
         commonPropagatedBuildInputs = with pkgs.python3Packages; [
           (buildPythonPackage rec {
