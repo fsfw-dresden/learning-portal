@@ -62,6 +62,13 @@
             src = ./.;
             format = "pyproject";
             
+            # Include data files in the package
+            postInstall = ''
+              # Copy translation files
+              cp -r $src/src/welcome/translations $out/${pkgs.python3.sitePackages}/welcome/
+              cp -r $src/src/vision_assistant/assets $out/${pkgs.python3.sitePackages}/vision_assistant/
+            '';
+            
             nativeBuildInputs = with pkgs.python3Packages; [
               hatchling
             ] ++ [ 
