@@ -1,6 +1,7 @@
 import subprocess
 import logging
 from pathlib import Path
+from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ def compile_translations(base_dir: Path) -> None:
                 logger.error("lrelease not found. Please install Qt Linguist tools.")
                 raise
 
-class CustomBuildHook:
+class CustomBuildHook(BuildHookInterface):
     def initialize(self, version, build_data):
         """Compile .ts files to .qm files during build"""
         # Get the src directory path
