@@ -62,10 +62,21 @@
             src = ./.;
             format = "pyproject";
             
+            # Build and install translations
+            preBuild = ''
+              cd src/welcome
+              mkdir -p translations
+              for ts in translations/*.ts; do
+                ${pkgs.qt5.qttools.dev}/bin/lrelease $ts
+              done
+              cd ../..
+            '';
+
             # Include data files in the package
             postInstall = ''
               # Copy translation files
-              cp -r $src/src/welcome/translations $out/${pkgs.python3.sitePackages}/welcome/
+              mkdir -p $out/${pkgs.python3.sitePackages}/welcome/translations/
+              cp -r src/welcome/translations/*.qm $out/${pkgs.python3.sitePackages}/welcome/translations/
               cp -r $src/src/vision_assistant/assets $out/${pkgs.python3.sitePackages}/vision_assistant/
             '';
             

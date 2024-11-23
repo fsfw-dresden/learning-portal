@@ -17,8 +17,6 @@ dependencies = [
 requires = ["hatchling", "PyQt5"]
 build-backend = "hatchling.build"
 
-[tool.hatch.build.hooks.custom]
-path = "src/build/hooks.py"
 
 [project.gui-scripts]
 vision-assistant = "vision_assistant.main:main"
