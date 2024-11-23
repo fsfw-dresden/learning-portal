@@ -16,9 +16,6 @@ dependencies = [
 vision-assistant = "vision_assistant.main:main"
 welcome = "welcome.main:main"
 
-[project.scripts]
-vision-assistant = "vision_assistant.main:main"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
