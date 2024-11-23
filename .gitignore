@@ -1,2 +1,8 @@
 .aider*
 .env
+venv
+tutor-next/.next
+cache
+trace
+node_modules
+result
