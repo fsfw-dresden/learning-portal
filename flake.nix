@@ -14,6 +14,7 @@
           pyqt5
           pyqtwebengine
           pillow
+          platformdirs
           qt-material
         ];
         
