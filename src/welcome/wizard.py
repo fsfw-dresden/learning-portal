@@ -1,9 +1,17 @@
 import logging
+from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
+                            QLabel, QRadioButton, QButtonGroup, QGridLayout,
+                            QWidget, QPushButton, QApplication)
 
 # Translation context for all wizard pages
 TRANSLATION_CONTEXT = "WelcomeWizard"
 
-from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
+def tr(text: str, *args) -> str:
+    """Helper function for translations with variable substitution"""
+    translated = QApplication.translate(TRANSLATION_CONTEXT, text)
+    if args:
+        return translated % args
+    return translated
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication)
 from PyQt5.QtCore import Qt, QSize
@@ -17,13 +25,13 @@ class WelcomePage(QWizardPage):
         
         layout = QVBoxLayout()
         
-        welcome_label = QLabel(self.tr("Welcome!", TRANSLATION_CONTEXT))
+        welcome_label = QLabel(tr("Welcome!"))
         welcome_label.setAlignment(Qt.AlignCenter)
         welcome_label.setStyleSheet("font-size: 24px; font-weight: bold;")
         
-        desc_label = QLabel(self.tr("to your personal learning portal on the Schulstick. "
-                                   "The Schulstick will help you learn many programs that "
-                                   "can help you in everyday life.", TRANSLATION_CONTEXT))
+        desc_label = QLabel(tr("to your personal learning portal on the Schulstick. "
+                              "The Schulstick will help you learn many programs that "
+                              "can help you in everyday life."))
         desc_label.setWordWrap(True)
         desc_label.setAlignment(Qt.AlignCenter)
         desc_label.setStyleSheet("font-size: 18px;")
@@ -40,17 +48,17 @@ class GradePage(QWizardPage):
         super().__init__()
         layout = QVBoxLayout()
         
-        question_label = QLabel(self.tr("To customize learning for you, please answer the following questions:", TRANSLATION_CONTEXT))
+        question_label = QLabel(tr("To customize learning for you, please answer the following questions:"))
         question_label.setWordWrap(True)
         
-        grade_label = QLabel(self.tr("What grade are you in?", TRANSLATION_CONTEXT))
+        grade_label = QLabel(tr("What grade are you in?"))
         grade_label.setStyleSheet("font-weight: bold;")
         
         self.grade_group = QButtonGroup()
         grades = ["4", "5", "6", "7", "8+"]
         
         for i, grade in enumerate(grades):
-            radio = QRadioButton(self.tr("%sth grade", TRANSLATION_CONTEXT, grade))
+            radio = QRadioButton(tr("%sth grade", grade))
             self.grade_group.addButton(radio, i)
             layout.addWidget(radio)
             
@@ -65,16 +73,16 @@ class SkillLevelPage(QWizardPage):
         super().__init__()
         layout = QVBoxLayout()
         
-        question_label = QLabel(self.tr("How do you rate yourself in the following areas?", TRANSLATION_CONTEXT))
+        question_label = QLabel(tr("How do you rate yourself in the following areas?"))
         question_label.setWordWrap(True)
         
         grid = QGridLayout()
         subjects = [
-            self.tr("German", TRANSLATION_CONTEXT),
-            self.tr("Foreign Language", TRANSLATION_CONTEXT),
-            self.tr("Mathematics", TRANSLATION_CONTEXT),
-            self.tr("Computer Science", TRANSLATION_CONTEXT),
-            self.tr("Natural Science", TRANSLATION_CONTEXT)
+            tr("German"),
+            tr("Foreign Language"),
+            tr("Mathematics"),
+            tr("Computer Science"),
+            tr("Natural Science")
         ]
         
         self.ratings = {}
@@ -114,11 +122,11 @@ class CompletionPage(QWizardPage):
         super().__init__()
         layout = QVBoxLayout()
         
-        done_label = QLabel(self.tr("Done!", TRANSLATION_CONTEXT))
+        done_label = QLabel(tr("Done!"))
         done_label.setAlignment(Qt.AlignCenter)
         done_label.setStyleSheet("font-size: 24px; font-weight: bold;")
         
-        message_label = QLabel(self.tr("The recommendations will now be tailored to you!", TRANSLATION_CONTEXT))
+        message_label = QLabel(tr("The recommendations will now be tailored to you!"))
         message_label.setWordWrap(True)
         message_label.setAlignment(Qt.AlignCenter)
         message_label.setStyleSheet("font-size: 18px;")
