@@ -64,7 +64,10 @@
             
             nativeBuildInputs = with pkgs.python3Packages; [
               hatchling
-            ] ++ [ pkgs.qt5.wrapQtAppsHook ];
+            ] ++ [ 
+              pkgs.qt5.wrapQtAppsHook
+              pkgs.qt5.qttools  # Adds lrelease
+            ];
             
             propagatedBuildInputs = commonBuildInputs ++ commonPropagatedBuildInputs;
             
