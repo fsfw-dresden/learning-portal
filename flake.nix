@@ -52,10 +52,10 @@
         ];
         
       in
-      {
+      rec {
         packages = {
           vision-assistant = pkgs.python3Packages.buildPythonApplication {
-            pname = "vision-assistant";
+          pname = "vision-assistant";
           version = "0.1.0";
           src = ./.;
           format = "pyproject";
@@ -68,6 +68,8 @@
             pyqt5
             pyqtwebengine
             pillow
+            platformdirs
+            qt-material
             (buildPythonPackage rec {
               pname = "anthropic";
               version = "0.37.1";
@@ -88,14 +90,10 @@
                 pydantic
                 typing-extensions
                 distro
-                boto3
                 google-cloud-core
                 google-api-core
                 google-auth
                 boto3
-                google-cloud-core
-                google-api-core
-                google-auth
                 tiktoken
                 tokenizers
                 jiter
