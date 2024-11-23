@@ -35,12 +35,14 @@ class TutorView(QWidget):
         self.web_view = QWebEngineView(self)
         self.web_view.page().setBackgroundColor(Qt.transparent)
         calling_dir = os.getenv("PWD", os.getcwd())
+        host = "http://localhost:3000"
         application = "inkscape"
         unit = "lektion1"
         page = "intro"
-        tutorial_path = os.path.join(calling_dir, "tutor-next", "export", application, unit, page + ".html")
-        print(f"Loading tutorial from: {tutorial_path}")
-        self.web_view.load(QUrl.fromLocalFile(tutorial_path))
+       #tutorial_path = os.path.join(calling_dir, "tutor-next", "export", application, unit, page)
+        external_path = os.path.join(host, application, unit, page)
+        print(f"Loading tutorial from: {external_path}")
+        self.web_view.load(QUrl(external_path))
         self.layout.addWidget(self.web_view)
         
         # Create toggle button
