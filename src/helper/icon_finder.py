@@ -1,6 +1,6 @@
 import os
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLineEdit, 
-                            QTreeWidget, QTreeWidgetItem)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLineEdit,
+                            QListWidget, QListWidgetItem)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
@@ -19,11 +19,9 @@ class IconFinder(QWidget):
         self.search_input.textChanged.connect(self.filter_icons)
         layout.addWidget(self.search_input)
         
-        # Create tree widget
-        self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["Icon Name", "Preview"])
-        self.tree.setColumnWidth(0, 250)
-        layout.addWidget(self.tree)
+        # Create list widget
+        self.list = QListWidget()
+        layout.addWidget(self.list)
         
         self.setLayout(layout)
         
@@ -47,17 +45,17 @@ class IconFinder(QWidget):
                         # Extract icon name without extension and size directory
                         icon_name = os.path.splitext(file)[0]
                         if QIcon.hasThemeIcon(icon_name):
-                            item = QTreeWidgetItem([icon_name])
-                            item.setIcon(0, QIcon.fromTheme(icon_name))
-                            self.tree.addTopLevelItem(item)
+                            item = QListWidgetItem(icon_name)
+                            item.setIcon(QIcon.fromTheme(icon_name))
+                            self.list.addItem(item)
             
     def filter_icons(self, filter_text):
         """Filter icons based on search text"""
         filter_text = filter_text.lower()
-        for i in range(self.tree.topLevelItemCount()):
-            item = self.tree.topLevelItem(i)
+        for i in range(self.list.count()):
+            item = self.list.item(i)
             item.setHidden(
-                filter_text not in item.text(0).lower()
+                filter_text not in item.text().lower()
             )
 
 def main():
