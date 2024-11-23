@@ -28,5 +28,8 @@ icon-finder = "helper.icon_finder:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/vision_assistant", "src/welcome", "src/helper", "src/core"]
 
+[tool.hatch.build]
+packages = ["src/core"]
+
 [tool.hatch.build.targets.wheel.sources]
 "src/vision_assistant/assets" = "vision_assistant/assets"
