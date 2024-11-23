@@ -10,12 +10,6 @@ from core.preferences import Preferences, SkillLevelPreferences
 class WelcomePage(QWizardPage):
     def __init__(self):
         super().__init__()
-        # Setup logging
-        self.logger = logging.getLogger(__name__)
-        
-        # Load preferences
-        self.preferences = Preferences.load()
-        self.logger.info(f"Loaded preferences from: {Preferences._get_config_path()}")
         
         layout = QVBoxLayout()
         
@@ -135,6 +129,12 @@ class CompletionPage(QWizardPage):
 class WelcomeWizard(QWizard):
     def __init__(self):
         super().__init__()
+        # Setup logging
+        self.logger = logging.getLogger(__name__)
+        
+        # Load preferences
+        self.preferences = Preferences.load()
+        self.logger.info(f"Loaded preferences from: {Preferences._get_config_path()}")
         
         self.setWindowTitle("Schulstick")
         self.setWizardStyle(QWizard.ModernStyle)
