@@ -1,6 +1,7 @@
 import os
 import base64
 import anthropic
+from vision_assistant.env_helper import EnvHelper
 from vision_assistant.models import VisionResponse
 from PIL import Image, UnidentifiedImageError
 import io
@@ -11,8 +12,10 @@ from PyQt5.QtGui import QPainter, QColor
 class VisionAssistant:
     def __init__(self):
         api_key = os.getenv('ANTHROPIC_API_KEY')
-        if not api_key:
+        if not api_key and EnvHelper.is_production():
             raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
+        elif not api_key:
+            api_key = "dummy_key_for_development"
         self.client = anthropic.Anthropic(api_key=api_key)
         self.scale_factor = 1  # Store scaling factor for coordinate translation
         
