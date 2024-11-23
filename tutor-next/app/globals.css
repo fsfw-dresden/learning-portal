@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --bg-color: rgba(40, 40, 40, 0.95);
+  --bg-color: transparent !important;
   --text-color: #e0e0e0;
   --link-color: #60a5fa;
   --code-bg: rgba(30, 30, 30, 0.95);
