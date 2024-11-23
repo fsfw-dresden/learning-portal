@@ -54,60 +54,8 @@
       in
       rec {
         packages = {
-          vision-assistant = pkgs.python3Packages.buildPythonApplication {
-          pname = "vision-assistant";
-          version = "0.1.0";
-          src = ./.;
-          format = "pyproject";
-          
-          nativeBuildInputs = with pkgs.python3Packages; [
-            hatchling
-          ] ++ [ pkgs.qt5.wrapQtAppsHook ];
-          
-          propagatedBuildInputs = with pkgs.python3Packages; [
-            pyqt5
-            pyqtwebengine
-            pillow
-            platformdirs
-            qt-material
-            (buildPythonPackage rec {
-              pname = "anthropic";
-              version = "0.37.1";
-              format = "pyproject";
-              
-              src = fetchPypi {
-                inherit pname version;
-                sha256 = "sha256-mfaIJleV2qe6klbuaOry8F1TzZnXQX9KDC3CksEG0Ao=";
-              };
-              
-              nativeBuildInputs = with pkgs.python3Packages; [
-                hatchling
-                hatch-fancy-pypi-readme
-              ];
-              
-              propagatedBuildInputs = with pkgs.python3Packages; [
-                httpx
-                pydantic
-                typing-extensions
-                distro
-                google-cloud-core
-                google-api-core
-                google-auth
-                boto3
-                tiktoken
-                tokenizers
-                jiter
-              ];
-              
-              doCheck = false;
-            })
-          ];
-          
-          doCheck = false;  # Skip tests since we don't have any
-        };
-        
-          welcome = pkgs.python3Packages.buildPythonApplication {
-            pname = "welcome";
+          schulstick = pkgs.python3Packages.buildPythonApplication {
+            pname = "schulstick";
             version = "0.1.0";
             src = ./.;
             format = "pyproject";
@@ -121,16 +69,16 @@
             doCheck = false;
           };
           
-          default = packages.vision-assistant;
+          default = packages.schulstick;
         };
         
         apps = {
           vision-assistant = flake-utils.lib.mkApp { 
-            drv = self.packages.${system}.vision-assistant;
+            drv = self.packages.${system}.schulstick;
             name = "vision-assistant";
           };
           welcome = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.welcome;
+            drv = self.packages.${system}.schulstick;
             name = "welcome";
           };
           default = self.apps.${system}.vision-assistant;
