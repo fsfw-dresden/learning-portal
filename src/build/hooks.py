@@ -80,13 +80,24 @@ class CustomBuildHook(BuildHookInterface):
         # Get the src directory path
         src_dir = Path(__file__).parent.parent
         
-        # Find all .qm files
-        for qm_file in src_dir.rglob('*.qm'):
-            # Get relative path from src dir
-            rel_path = qm_file.relative_to(src_dir)
-            # Copy to artifact using relative paths
-            rel_path = qm_file.relative_to(src_dir)
-            dest = Path(artifact_path) / rel_path
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            import shutil
-            shutil.copy2(qm_file, dest)
+        # Create a temporary directory for the files
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            
+            # Find all .qm files
+            for qm_file in src_dir.rglob('*.qm'):
+                # Get relative path from src dir
+                rel_path = qm_file.relative_to(src_dir)
+                # Copy to temp directory first
+                dest = temp_path / rel_path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                import shutil
+                shutil.copy2(qm_file, dest)
+            
+            # Now copy from temp dir to wheel
+            for qm_file in temp_path.rglob('*.qm'):
+                rel_path = qm_file.relative_to(temp_path)
+                wheel_path = Path(artifact_path) / rel_path
+                wheel_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(qm_file, wheel_path)
