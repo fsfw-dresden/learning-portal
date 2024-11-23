@@ -28,16 +28,16 @@ def main():
     
     # Try to load system language first
     logger.info(f"Attempting to load translation for system locale: {system_locale.name()}")
-    translation_path = os.path.join(os.path.dirname(__file__), "translations/de.qm")
+    translation_path = os.path.join(os.path.dirname(__file__), "translations", "de.qm")
     logger.info(f"Looking for translation file at: {translation_path}")
     
     if not translator.load(translation_path):
         logger.warning(f"Failed to load translation from {translation_path}")
-        # If system language fails, fallback to German
-        logger.info("Falling back to German translation")
-        fallback_path = os.path.join(os.path.dirname(__file__), "translations/de.ts")
-        if not translator.load(fallback_path):
-            logger.warning(f"Failed to load German translation from {fallback_path}")
+        # Try absolute path as fallback
+        abs_path = os.path.abspath(translation_path)
+        logger.info(f"Trying absolute path: {abs_path}")
+        if not translator.load(abs_path):
+            logger.warning(f"Failed to load translation from absolute path")
     
     app.installTranslator(translator)
     
