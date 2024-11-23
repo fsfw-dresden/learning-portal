@@ -30,7 +30,3 @@ packages = ["src/vision_assistant", "src/welcome", "src/helper", "src/core"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src/vision_assistant/assets" = "vision_assistant/assets"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
