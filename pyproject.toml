@@ -31,3 +31,10 @@ packages = ["src/vision_assistant", "src/welcome", "src/helper", "src/core"]
 [tool.hatch.build.targets.wheel.sources]
 "src/vision_assistant/assets" = "vision_assistant/assets"
 "src/welcome/translations" = "welcome/translations"
+
+[tool.hatch.build]
+include = [
+    "src/welcome/translations/*.ts",
+    "src/welcome/translations/*.qm",
+    "src/vision_assistant/assets/*"
+]
