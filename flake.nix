@@ -12,10 +12,14 @@
       in
       {
         packages.default = pkgs.python3Packages.buildPythonApplication {
-          pname = "hello-pyqt";
+          pname = "vision-assistant";
           version = "0.1.0";
           src = ./.;
-          format = "setuptools";
+          format = "pyproject";
+          
+          nativeBuildInputs = with pkgs.python3Packages; [
+            hatchling
+          ] ++ [ pkgs.qt5.wrapQtAppsHook ];
           
           propagatedBuildInputs = with pkgs.python3Packages; [
             pyqt5

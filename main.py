@@ -3,8 +3,8 @@ import os
 import logging
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
-from vision_assistant import VisionAssistant, HighlightOverlay
-from tutor_view import TutorView
+from vision_assistant.vision import VisionAssistant, HighlightOverlay
+from vision_assistant.tutor import TutorView
 from PyQt5.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
                         QScreen, QIcon, QPixmap)
