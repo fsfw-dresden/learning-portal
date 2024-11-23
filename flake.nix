@@ -62,10 +62,6 @@
             })
           ];
           
-          nativeBuildInputs = with pkgs; [
-            qt5.wrapQtAppsHook
-          ];
-
           doCheck = false;  # Skip tests since we don't have any
         };
 
