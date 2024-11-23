@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout,
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon
 from vision_assistant.tutor import TutorView
-from vision_assistant.preferences import Preferences, SkillLevelPreferences
+from core.preferences import Preferences, SkillLevelPreferences
 
 class WelcomePage(QWizardPage):
     def __init__(self):
@@ -44,7 +44,7 @@ class GradePage(QWizardPage):
         grades = ["4", "5", "6", "7", "8+"]
         
         for i, grade in enumerate(grades):
-            radio = QRadioButton(f"{grade}. Klasse")
+            radio = QRadioButton(self.tr("%sth grade") % grade)
             self.grade_group.addButton(radio, i)
             layout.addWidget(radio)
             
@@ -85,7 +85,7 @@ class SkillLevelPage(QWizardPage):
                 star_btn = QPushButton()
                 star_btn.setCheckable(True)
                 star_btn.setFixedSize(QSize(24, 24))
-                star_btn.setIcon(QIcon.fromTheme("non-starred"))
+                star_btn.setIcon(QIcon.fromTheme("non-starred-symbolic"))
                 star_btn.clicked.connect(lambda checked, s=subject, rating=j+1:
                                        self.update_stars(s, rating))
                 star_group.addButton(star_btn, j)
@@ -101,7 +101,7 @@ class SkillLevelPage(QWizardPage):
     def update_stars(self, subject, rating):
         buttons = self.ratings[subject].buttons()
         for i, btn in enumerate(buttons):
-            btn.setIcon(QIcon.fromTheme("starred" if i < rating else "non-starred"))
+            btn.setIcon(QIcon.fromTheme("starred-symbolic" if i < rating else "non-starred-symbolic"))
 
 class CompletionPage(QWizardPage):
     def __init__(self):
@@ -156,7 +156,7 @@ class WelcomeWizard(QWizard):
     def on_finish(self):
         # Save preferences
         prefs = Preferences.load()
-        prefs.skill.grade = self.field("grade") + 4  # Convert to actual grade
+        prefs.skill.grade = self.field("grade") 
         
         # Start tutor view
         self.tutor = TutorView()
