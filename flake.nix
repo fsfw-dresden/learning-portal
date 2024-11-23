@@ -16,6 +16,7 @@
           pillow
           platformdirs
           qt-material
+          setuptools  # Provides pkg_resources
         ];
         
         commonPropagatedBuildInputs = with pkgs.python3Packages; [
