@@ -51,6 +51,20 @@ def main():
     if translation_loaded:
         app.installTranslator(translator)
         logger.info(f"Successfully loaded translation for locale: {locale.name()}")
+        
+        # Log some example translations to verify loading
+        test_strings = [
+            "Welcome!",
+            "What grade are you in?",
+            "German",
+            "Foreign Language",
+            "Mathematics"
+        ]
+        
+        logger.info("Translation test pairs (English -> Translated):")
+        for text in test_strings:
+            translated = QApplication.translate("WelcomeWizard", text)
+            logger.info(f"  '{text}' -> '{translated}'")
     else:
         logger.warning(f"No translation found for locale: {locale.name()}, using default English")
     
