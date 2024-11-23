@@ -1,3 +1,4 @@
+import logging
 from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication)
@@ -9,6 +10,13 @@ from core.preferences import Preferences, SkillLevelPreferences
 class WelcomePage(QWizardPage):
     def __init__(self):
         super().__init__()
+        # Setup logging
+        self.logger = logging.getLogger(__name__)
+        
+        # Load preferences
+        self.preferences = Preferences.load()
+        self.logger.info(f"Loaded preferences from: {Preferences._get_config_path()}")
+        
         layout = QVBoxLayout()
         
         welcome_label = QLabel(self.tr("Welcome!"))
@@ -155,8 +163,9 @@ class WelcomeWizard(QWizard):
     
     def on_finish(self):
         # Save preferences
-        prefs = Preferences.load()
-        prefs.skill.grade = self.field("grade") 
+        self.preferences.skill.grade = self.field("grade")
+        self.preferences.save()
+        self.logger.info(f"Saved preferences to: {Preferences._get_config_path()}")
         
         # Start tutor view
         self.tutor = TutorView()
