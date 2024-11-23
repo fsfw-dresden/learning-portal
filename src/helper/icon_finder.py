@@ -1,3 +1,4 @@
+import os
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLineEdit, 
                             QTreeWidget, QTreeWidgetItem)
 from PyQt5.QtGui import QIcon
@@ -31,10 +32,24 @@ class IconFinder(QWidget):
         
     def load_icons(self):
         """Load all available theme icons"""
+        theme = QIcon.themeName()
+        if not theme:
+            theme = "hicolor"  # fallback theme
+            
         for icon_name in QIcon.themeSearchPaths():
-            item = QTreeWidgetItem([icon_name])
-            item.setIcon(0, QIcon.fromTheme(icon_name))
-            self.tree.addTopLevelItem(item)
+            theme_dir = f"{icon_name}/{theme}"
+            if not os.path.exists(theme_dir):
+                continue
+                
+            for root, _, files in os.walk(theme_dir):
+                for file in files:
+                    if file.endswith(('.png', '.svg')):
+                        # Extract icon name without extension and size directory
+                        icon_name = os.path.splitext(file)[0]
+                        if QIcon.hasThemeIcon(icon_name):
+                            item = QTreeWidgetItem([icon_name])
+                            item.setIcon(0, QIcon.fromTheme(icon_name))
+                            self.tree.addTopLevelItem(item)
             
     def filter_icons(self, filter_text):
         """Filter icons based on search text"""
