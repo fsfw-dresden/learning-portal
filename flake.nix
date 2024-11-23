@@ -9,10 +9,53 @@
     flake-utils.lib.eachDefaultSystem (system:
       let 
         pkgs = nixpkgs.legacyPackages.${system};
+        
+        commonBuildInputs = with pkgs.python3Packages; [
+          pyqt5
+          pyqtwebengine
+          pillow
+          qt-material
+        ];
+        
+        commonPropagatedBuildInputs = with pkgs.python3Packages; [
+          (buildPythonPackage rec {
+            pname = "anthropic";
+            version = "0.37.1";
+            format = "pyproject";
+            
+            src = fetchPypi {
+              inherit pname version;
+              sha256 = "sha256-mfaIJleV2qe6klbuaOry8F1TzZnXQX9KDC3CksEG0Ao=";
+            };
+            
+            nativeBuildInputs = with pkgs.python3Packages; [
+              hatchling
+              hatch-fancy-pypi-readme
+            ];
+            
+            propagatedBuildInputs = with pkgs.python3Packages; [
+              httpx
+              pydantic
+              typing-extensions
+              distro
+              boto3
+              google-cloud-core
+              google-api-core
+              google-auth
+              tiktoken
+              tokenizers
+              jiter
+            ];
+            
+            doCheck = false;
+          })
+        ];
+        
       in
       {
-        packages.default = pkgs.python3Packages.buildPythonApplication {
-          pname = "vision-assistant";
+        packages = {
+          vision-assistant = pkgs.python3Packages.buildPythonApplication {
+            pname = "vision-assistant";
           version = "0.1.0";
           src = ./.;
           format = "pyproject";
@@ -64,12 +107,41 @@
           
           doCheck = false;  # Skip tests since we don't have any
         };
+        
+          welcome = pkgs.python3Packages.buildPythonApplication {
+            pname = "welcome";
+            version = "0.1.0";
+            src = ./.;
+            format = "pyproject";
+            
+            nativeBuildInputs = with pkgs.python3Packages; [
+              hatchling
+            ] ++ [ pkgs.qt5.wrapQtAppsHook ];
+            
+            propagatedBuildInputs = commonBuildInputs ++ commonPropagatedBuildInputs;
+            
+            doCheck = false;
+          };
+          
+          default = packages.vision-assistant;
+        };
+        
+        apps = {
+          vision-assistant = flake-utils.lib.mkApp { 
+            drv = self.packages.${system}.vision-assistant;
+            name = "vision-assistant";
+          };
+          welcome = flake-utils.lib.mkApp {
+            drv = self.packages.${system}.welcome;
+            name = "welcome";
+          };
+          default = self.apps.${system}.vision-assistant;
+        };
 
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             python3
-            python3Packages.pyqt5
-            python3Packages.pyqtwebengine
+          ] ++ commonBuildInputs ++ [
             (python3.pkgs.buildPythonPackage rec {
               pname = "anthropic";
               version = "0.37.1";
