@@ -2,7 +2,9 @@
 .env
 venv
 tutor-next/.next
+tutor-next/export
 cache
 trace
 node_modules
 result
+vision_assistant.egg-info
