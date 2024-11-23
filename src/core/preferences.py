@@ -12,7 +12,13 @@ class SkillLevelPreferences:
     """User skill level preferences"""
     grade: int = 1
     age: int = 6
-    skill_level: int = 1
+    subjects: dict[str, int] = field(default_factory=lambda: {
+        "german": 1,
+        "foreign_language": 1,
+        "mathematics": 1,
+        "computer_science": 1,
+        "natural_science": 1
+    })
 
 @dataclass
 class UserPreferences:
