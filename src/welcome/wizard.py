@@ -50,7 +50,7 @@ class GradePage(QWizardPage):
         grades = ["4", "5", "6", "7", "8+"]
         
         for i, grade in enumerate(grades):
-            radio = QRadioButton(self.tr("%sth grade", TRANSLATION_CONTEXT) % grade)
+            radio = QRadioButton(self.tr("%sth grade", TRANSLATION_CONTEXT, grade))
             self.grade_group.addButton(radio, i)
             layout.addWidget(radio)
             
