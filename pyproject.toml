@@ -7,6 +7,8 @@ dependencies = [
     "PyQt5",
     "anthropic[bedrock,vertex]>=0.37.1",
     "pillow",
+    "pyyaml>=6.0.1",
+    "platformdirs>=4.1.0",
 ]
 
 [project.scripts]

@@ -3,6 +3,7 @@ import os
 import logging
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
+from vision_assistant.preferences import Preferences
 from vision_assistant.vision import VisionAssistant, HighlightOverlay
 from vision_assistant.tutor import TutorView
 from PyQt5.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, QRect
@@ -14,6 +15,7 @@ class CircularWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.tutor_view = None
+        self.preferences = Preferences.load()
         # Remove window decorations and make window stay on top
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         # Enable transparency
