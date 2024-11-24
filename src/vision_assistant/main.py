@@ -256,8 +256,12 @@ class CircularWindow(QWidget):
         try:
             self.logger.info(f"Sending prompt to API: {question}")
             
-            # Send screenshot and question to API
-            with open(screenshot_path, 'rb') as f:
+            # Take screenshot and send to API
+            screen = QApplication.primaryScreen()
+            screenshot = screen.grabWindow(0)
+            screenshot.save("temp_screenshot.png")
+            
+            with open("temp_screenshot.png", 'rb') as f:
                 files = {'screenshot': f}
                 data = {'question': question}
                 response = self.session.post(
@@ -267,6 +271,9 @@ class CircularWindow(QWidget):
                 )
                 response.raise_for_status()
                 result = response.json()
+                
+            # Clean up temporary screenshot
+            os.remove("temp_screenshot.png")
             
             self.logger.info(f"Vision analysis response: {result}")
             
