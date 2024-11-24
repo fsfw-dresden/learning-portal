@@ -1,6 +1,8 @@
 import sys
 import os
 import logging
+import requests
+from urllib.parse import urljoin
 os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
@@ -252,9 +254,21 @@ class CircularWindow(QWidget):
             return
             
         try:
-            self.logger.info(f"Sending prompt to AI: {question}")
-            response = self.vision_assistant.analyze_screenshot("shot01.png", question)
-            self.logger.info(f"Vision analysis response: {response}")
+            self.logger.info(f"Sending prompt to API: {question}")
+            
+            # Send screenshot and question to API
+            with open(screenshot_path, 'rb') as f:
+                files = {'screenshot': f}
+                data = {'question': question}
+                response = self.session.post(
+                    urljoin(self.base_url, f'sessions/{self.session_id}/analyze'),
+                    files=files,
+                    data=data
+                )
+                response.raise_for_status()
+                result = response.json()
+            
+            self.logger.info(f"Vision analysis response: {result}")
             
             # Create and show highlight overlay
             if not hasattr(self, 'highlight_overlay'):
@@ -266,7 +280,10 @@ class CircularWindow(QWidget):
             self.highlight_overlay.setGeometry(screen_geometry)
             
             # Show the highlight at the specified coordinates with instructions
-            self.highlight_overlay.set_highlight(response.look_at_coordinates, response.instructions)
+            self.highlight_overlay.set_highlight(
+                result['look_at_coordinates'],
+                result['instructions']
+            )
             
         except Exception as e:
             self.logger.error(f"Error during vision analysis: {e}")
