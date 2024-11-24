@@ -3,6 +3,7 @@ import os
 import logging
 import requests
 from urllib.parse import urljoin
+from urllib.parse import urljoin
 os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
 import base64
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
@@ -22,6 +23,23 @@ class CircularWindow(QWidget):
         super().__init__()
         self.tutor_view = None
         self.preferences = Preferences.load()
+        
+        # Initialize API session
+        self.base_url = os.getenv('VISION_API_URL', 'http://localhost:8000')
+        self.api_key = os.getenv('VISION_API_KEY', 'development_key')
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Authorization': f'Bearer {self.api_key}'
+        })
+        
+        # Create initial session
+        try:
+            response = self.session.post(urljoin(self.base_url, 'sessions'))
+            response.raise_for_status()
+            self.session_id = response.json()['session_id']
+        except Exception as e:
+            self.logger.error(f"Failed to create API session: {e}")
+            self.session_id = None
         # Remove window decorations and make window stay on top
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         # Enable transparency
