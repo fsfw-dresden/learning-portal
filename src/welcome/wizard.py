@@ -211,7 +211,7 @@ class WelcomeWizard(QWizard):
     def on_finish(self, result):
         if result == QWizard.Accepted:
             # Save preferences
-            self.logger.info(f"Saving preferences: {self.preferences}")
+            self.preferences.support.welcome_wizard_finished = True
             self.preferences.save()
 
             self.logger.info(f"Saved preferences to: {Preferences._get_config_path()}")
