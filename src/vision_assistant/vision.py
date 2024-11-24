@@ -80,7 +80,7 @@ class VisionAssistant:
                     },
                     {
                         "type": "text",
-                        "text": f"Analyze this screenshot and help with: {user_question}. "
+                        "text": f"Analyze this screenshot and help user in it's native language (determined by question language) with: {user_question}. "
                                f"Return a JSON with these fields: "
                                f"'look_at_coordinates': [x,y], 'instructions': 'step by step guide'"
                     }

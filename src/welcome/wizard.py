@@ -2,6 +2,11 @@ import logging
 from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication)
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QIcon
+from vision_assistant.tutor import TutorView
+from core.preferences import Preferences, SkillLevelPreferences
+
 
 # Translation context for all wizard pages
 TRANSLATION_CONTEXT = "WelcomeWizard"
@@ -12,13 +17,6 @@ def tr(text: str, *args) -> str:
     if args:
         return translated % args
     return translated
-                            QLabel, QRadioButton, QButtonGroup, QGridLayout,
-                            QWidget, QPushButton, QApplication)
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QIcon
-from vision_assistant.tutor import TutorView
-from core.preferences import Preferences, SkillLevelPreferences
-
 class WelcomePage(QWizardPage):
     def __init__(self):
         super().__init__()
