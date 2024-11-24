@@ -100,7 +100,6 @@ class GradePage(WelcomeWizardPage):
 
 class SkillLevelPage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
-        super().__init__(preferences)
         self.ratings = {}
         self.subject_map = {
             tr("German"): "german",
@@ -109,6 +108,7 @@ class SkillLevelPage(WelcomeWizardPage):
             tr("Computer Science"): "computer_science",
             tr("Natural Science"): "natural_science"
         }
+        super().__init__(preferences)
         self.setup_ui()
         
     def setup_ui(self):
