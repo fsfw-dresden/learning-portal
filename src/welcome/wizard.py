@@ -27,6 +27,7 @@ class WelcomeWizardPage(QWizardPage, metaclass=WelcomeWizardPageMeta):
     """Abstract base class for all welcome wizard pages"""
     def __init__(self, preferences: Preferences):
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.preferences = preferences
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
@@ -101,6 +102,13 @@ class SkillLevelPage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
         super().__init__(preferences)
         self.ratings = {}
+        self.subject_map = {
+            tr("German"): "german",
+            tr("Foreign Language"): "foreign_language",
+            tr("Mathematics"): "mathematics",
+            tr("Computer Science"): "computer_science",
+            tr("Natural Science"): "natural_science"
+        }
         self.setup_ui()
         
     def setup_ui(self):
@@ -109,13 +117,7 @@ class SkillLevelPage(WelcomeWizardPage):
         question_label.setWordWrap(True)
         
         grid = QGridLayout()
-        subjects = [
-            tr("German"),
-            tr("Foreign Language"),
-            tr("Mathematics"),
-            tr("Computer Science"),
-            tr("Natural Science")
-        ]
+        subjects = list(self.subject_map.keys())
         
         self.ratings = {}
         for i, subject in enumerate(subjects):
@@ -132,19 +134,14 @@ class SkillLevelPage(WelcomeWizardPage):
     
     def initializePage(self):
         # Load initial ratings from preferences
-        subject_map = {
-            tr("German"): "german",
-            tr("Foreign Language"): "foreign_language",
-            tr("Mathematics"): "mathematics",
-            tr("Computer Science"): "computer_science",
-            tr("Natural Science"): "natural_science"
-        }
-        
-        for subject, pref_name in subject_map.items():
+        for subject, pref_name in self.subject_map.items():
             if hasattr(self.preferences.skill.subjects, pref_name):
                 rating = getattr(self.preferences.skill.subjects, pref_name)
                 if rating:
                     self.update_stars(subject, rating)
+            else:
+                self.logger.warning(f"No preference found for subject: {pref_name} ({subject})")
+                self.logger.info(f"Available subjects: {self.preferences.skill.subjects}")
                 
     def update_stars(self, subject: str, rating: int):
         """Update the star rating for a subject"""
@@ -152,16 +149,9 @@ class SkillLevelPage(WelcomeWizardPage):
 
     def on_rating_changed(self, subject: str, rating: int):
         """Handle rating changes and store in preferences"""
-        subject_map = {
-            tr("German"): "german",
-            tr("Foreign Language"): "foreign_language", 
-            tr("Mathematics"): "mathematics",
-            tr("Computer Science"): "computer_science",
-            tr("Natural Science"): "natural_science"
-        }
-        
-        if subject in subject_map:
-            self.preferences.skill.subjects[subject_map[subject]] = rating
+        pref_name = self.subject_map[subject]
+        if pref_name:
+            self.preferences.skill.subjects[pref_name] = rating
 
 class CompletionPage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
