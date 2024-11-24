@@ -20,18 +20,35 @@ class SkillLevelPreferences:
         "natural_science": 1
     })
 
+class Gender(Enum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+
+supported_locales = ["de_DE", "en_US"]
+
+@dataclass
+class ApplicationSupportPreferences:
+    """Application support preferences"""
+    welcome_wizard_finished: bool = False
+
+
 @dataclass
 class UserPreferences:
     """User identity preferences"""
     nick: str = "Anonymous"
     avatar: str = "default.png"
+    locale: str = "de_DE"
+    gender: Gender = Gender.OTHER
+
 
 @dataclass
 class Preferences:
     """Combined user preferences"""
     skill: SkillLevelPreferences = field(default_factory=SkillLevelPreferences)
     user: UserPreferences = field(default_factory=UserPreferences)
-
+    support: ApplicationSupportPreferences = field(default_factory=ApplicationSupportPreferences)
+    
     @classmethod
     def load(cls) -> 'Preferences':
         """Load preferences from YAML file"""
@@ -49,7 +66,8 @@ class Preferences:
             
         return cls(
             skill=SkillLevelPreferences(**data.get('skill', {})),
-            user=UserPreferences(**data.get('user', {}))
+            user=UserPreferences(**data.get('user', {})),
+            support=ApplicationSupportPreferences(**data.get('support', {}))
         )
 
     def save(self) -> None:
