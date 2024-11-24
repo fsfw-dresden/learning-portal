@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication)
@@ -17,13 +18,25 @@ def tr(text: str, *args) -> str:
     if args:
         return translated % args
     return translated
-class WelcomePage(QWizardPage):
+
+class WelcomeWizardPage(QWizardPage, ABC):
+    """Abstract base class for all welcome wizard pages"""
     def __init__(self, preferences: Preferences):
         super().__init__()
         self.preferences = preferences
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
         
-        layout = QVBoxLayout()
+    @abstractmethod
+    def setup_ui(self):
+        """Setup the UI elements for this page"""
+        pass
+class WelcomePage(WelcomeWizardPage):
+    def __init__(self, preferences: Preferences):
+        super().__init__(preferences)
+        self.setup_ui()
         
+    def setup_ui(self):
         welcome_label = QLabel(tr("Welcome!"))
         welcome_label.setAlignment(Qt.AlignCenter)
         welcome_label.setStyleSheet("font-size: 24px; font-weight: bold;")
@@ -35,26 +48,24 @@ class WelcomePage(QWizardPage):
         desc_label.setAlignment(Qt.AlignCenter)
         desc_label.setStyleSheet("font-size: 18px;")
         
-        layout.addStretch()
-        layout.addWidget(welcome_label)
-        layout.addWidget(desc_label)
-        layout.addStretch()
-        
-        self.setLayout(layout)
+        self.main_layout.addStretch()
+        self.main_layout.addWidget(welcome_label)
+        self.main_layout.addWidget(desc_label)
+        self.main_layout.addStretch()
 
-class GradePage(QWizardPage):
+class GradePage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
-        super().__init__()
-        self.preferences = preferences
-        layout = QVBoxLayout()
+        super().__init__(preferences)
+        self.grade_group = QButtonGroup()
+        self.setup_ui()
         
+    def setup_ui(self):
         question_label = QLabel(tr("To customize learning for you, please answer the following questions:"))
         question_label.setWordWrap(True)
         
         grade_label = QLabel(tr("What grade are you in?"))
         grade_label.setStyleSheet("font-weight: bold;")
         
-        self.grade_group = QButtonGroup()
         grades = ["4", "5", "6", "7", "8+"]
         
         # Create radio buttons for grades
@@ -66,9 +77,9 @@ class GradePage(QWizardPage):
             # Register field for each grade button
             self.registerField(f"grade_{grade}", radio)
             
-        layout.insertWidget(0, question_label)
-        layout.insertWidget(1, grade_label)
-        layout.addLayout(grade_layout)
+        self.main_layout.addWidget(question_label)
+        self.main_layout.addWidget(grade_label)
+        self.main_layout.addLayout(grade_layout)
         
         # Set initial state from preferences
         if self.preferences.skill.grade:
@@ -76,13 +87,14 @@ class GradePage(QWizardPage):
                 if btn.text() == tr("%sth grade", str(self.preferences.skill.grade)):
                     btn.setChecked(True)
                     break
-        self.setLayout(layout)
 
-class SkillLevelPage(QWizardPage):
+class SkillLevelPage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
-        super().__init__()
-        self.preferences = preferences
-        layout = QVBoxLayout()
+        super().__init__(preferences)
+        self.ratings = {}
+        self.setup_ui()
+        
+    def setup_ui(self):
         
         question_label = QLabel(tr("How do you rate yourself in the following areas?"))
         question_label.setWordWrap(True)
@@ -145,12 +157,12 @@ class SkillLevelPage(QWizardPage):
         # Store the rating in a field
         self.registerField(f"rating_{subject}", buttons[rating-1])
 
-class CompletionPage(QWizardPage):
+class CompletionPage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
-        super().__init__()
-        self.preferences = preferences
-        layout = QVBoxLayout()
+        super().__init__(preferences)
+        self.setup_ui()
         
+    def setup_ui(self):
         done_label = QLabel(tr("Done!"))
         done_label.setAlignment(Qt.AlignCenter)
         done_label.setStyleSheet("font-size: 24px; font-weight: bold;")
@@ -160,12 +172,10 @@ class CompletionPage(QWizardPage):
         message_label.setAlignment(Qt.AlignCenter)
         message_label.setStyleSheet("font-size: 18px;")
         
-        layout.addStretch()
-        layout.addWidget(done_label)
-        layout.addWidget(message_label)
-        layout.addStretch()
-        
-        self.setLayout(layout)
+        self.main_layout.addStretch()
+        self.main_layout.addWidget(done_label)
+        self.main_layout.addWidget(message_label)
+        self.main_layout.addStretch()
 
 class WelcomeWizard(QWizard):
     def __init__(self):
