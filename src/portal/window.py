@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QToolBar, 
-                            QVBoxLayout, QAction)
+                            QVBoxLayout, QAction, QSizePolicy)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from welcome.wizard import WelcomeWizard
@@ -37,16 +37,14 @@ class PortalWindow(QMainWindow):
         user_action.triggered.connect(self.show_wizard)
         toolbar.addAction(user_action)
         
-        # Add expanding spacer widget
+        # Add expanding spacer to push settings to the right
         spacer = QWidget()
-        spacer.setSizePolicy(1, 0)
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         toolbar.addWidget(spacer)
         
-        # Add settings button right-aligned
+        # Add settings button
         settings_action = QAction(QIcon.fromTheme("preferences-system"), tr("Settings"), self)
         toolbar.addAction(settings_action)
-        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        toolbar.widgetForAction(settings_action).setLayoutDirection(Qt.RightToLeft)
         
         # Add content widget
         self.content = ContentWidget()
