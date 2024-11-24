@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication)
+from welcome.components.star_rating import StarRating
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon
 from vision_assistant.tutor import TutorView
@@ -114,25 +115,12 @@ class SkillLevelPage(WelcomeWizardPage):
         self.ratings = {}
         for i, subject in enumerate(subjects):
             label = QLabel(subject)
-            stars_widget = QWidget()
-            stars_layout = QHBoxLayout(stars_widget)
-            stars_layout.setSpacing(5)
-            
-            star_group = QButtonGroup()
-            self.ratings[subject] = star_group
-            
-            for j in range(5):
-                star_btn = QPushButton()
-                star_btn.setCheckable(True)
-                star_btn.setFixedSize(QSize(24, 24))
-                star_btn.setIcon(QIcon.fromTheme("non-starred-symbolic"))
-                star_btn.clicked.connect(lambda checked, s=subject, rating=j+1:
-                                       self.update_stars(s, rating))
-                star_group.addButton(star_btn, j)
-                stars_layout.addWidget(star_btn)
+            star_rating = StarRating()
+            star_rating.ratingChanged.connect(lambda rating, s=subject: self.on_rating_changed(s, rating))
+            self.ratings[subject] = star_rating
             
             grid.addWidget(label, i, 0)
-            grid.addWidget(stars_widget, i, 1)
+            grid.addWidget(star_rating, i, 1)
         
         self.main_layout.addWidget(question_label)
         self.main_layout.addLayout(grid)
@@ -151,13 +139,9 @@ class SkillLevelPage(WelcomeWizardPage):
             if rating:
                 self.update_stars(subject, rating)
 
-    def update_stars(self, subject, rating):
-        buttons = self.ratings[subject].buttons()
-        for i, btn in enumerate(buttons):
-            btn.setIcon(QIcon.fromTheme("starred-symbolic" if i < rating else "non-starred-symbolic"))
-        
-        # Store the rating in a field
-        self.registerField(f"rating_{subject}", buttons[rating-1])
+    def on_rating_changed(self, subject: str, rating: int):
+        """Handle rating changes and store in wizard fields"""
+        self.registerField(f"rating_{subject}", self.ratings[subject])
 
 class CompletionPage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
@@ -231,10 +215,9 @@ class WelcomeWizard(QWizard):
         }
         
         for display_name, pref_name in subject_map.items():
-            for i, btn in enumerate(self.ratings[display_name].buttons()):
-                if btn.isChecked():
-                    setattr(self.preferences.skill.subjects, pref_name, i + 1)
-                    break
+            rating = self.ratings[display_name].rating()
+            if rating > 0:
+                setattr(self.preferences.skill.subjects, pref_name, rating)
         
         # Save preferences
         self.preferences.save()
