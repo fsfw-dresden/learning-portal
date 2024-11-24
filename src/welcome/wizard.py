@@ -128,16 +128,22 @@ class SkillLevelPage(WelcomeWizardPage):
     def initializePage(self):
         # Load initial ratings from preferences
         subject_map = {
-            tr("German"): self.preferences.skill.german,
-            tr("Foreign Language"): self.preferences.skill.foreign_language,
-            tr("Mathematics"): self.preferences.skill.mathematics,
-            tr("Computer Science"): self.preferences.skill.computer_science,
-            tr("Natural Science"): self.preferences.skill.natural_science
+            tr("German"): "german",
+            tr("Foreign Language"): "foreign_language",
+            tr("Mathematics"): "mathematics",
+            tr("Computer Science"): "computer_science",
+            tr("Natural Science"): "natural_science"
         }
         
-        for subject, rating in subject_map.items():
-            if rating:
-                self.update_stars(subject, rating)
+        for subject, pref_name in subject_map.items():
+            if hasattr(self.preferences.skill.subjects, pref_name):
+                rating = getattr(self.preferences.skill.subjects, pref_name)
+                if rating:
+                    self.update_stars(subject, rating)
+                
+    def update_stars(self, subject: str, rating: int):
+        """Update the star rating for a subject"""
+        self.ratings[subject].set_rating(rating)
 
     def on_rating_changed(self, subject: str, rating: int):
         """Handle rating changes and store in wizard fields"""
@@ -198,31 +204,14 @@ class WelcomeWizard(QWizard):
         
         self.finished.connect(self.on_finish)
     
-    def on_finish(self):
-        # Get selected grade
-        for grade in ["4", "5", "6", "7", "8+"]:
-            if self.field(f"grade_{grade}"):
-                self.preferences.skill.grade = int(grade.rstrip('+'))
-                break
-        
-        # Get ratings
-        subject_map = {
-            tr("German"): "german",
-            tr("Foreign Language"): "foreign_language",
-            tr("Mathematics"): "mathematics",
-            tr("Computer Science"): "computer_science",
-            tr("Natural Science"): "natural_science"
-        }
-        
-        for display_name, pref_name in subject_map.items():
-            rating = self.ratings[display_name].rating()
-            if rating > 0:
-                setattr(self.preferences.skill.subjects, pref_name, rating)
-        
-        # Save preferences
-        self.preferences.save()
-        self.logger.info(f"Saved preferences to: {Preferences._get_config_path()}")
-        
-        # Start tutor view
-        self.tutor = TutorView()
-        self.tutor.show()
+    def on_finish(self, result):
+        if result == QWizard.Accepted:
+            # Save preferences
+            self.logger.info(f"Saving preferences: {self.preferences}")
+            self.preferences.save()
+
+            self.logger.info(f"Saved preferences to: {Preferences._get_config_path()}")
+            
+            # Start tutor view
+            self.tutor = TutorView()
+            self.tutor.show()
