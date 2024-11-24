@@ -78,12 +78,17 @@ class GradePage(WelcomeWizardPage):
             radio = QRadioButton(tr("%sth grade", grade))
             self.grade_group.addButton(radio, i)
             grade_layout.addWidget(radio)
+            radio.toggled.connect(lambda checked, g=grade: self.on_grade_selected(g) if checked else None)
             # Register field for each grade button
             self.registerField(f"grade_{grade}", radio)
             
         self.main_layout.addWidget(question_label)
         self.main_layout.addWidget(grade_label)
         self.main_layout.addLayout(grade_layout)
+        
+        def on_grade_selected(self, grade: str):
+            """Update preferences when grade is selected"""
+            self.preferences.skill.grade = int(grade.replace("+", ""))
         
         # Set initial state from preferences
         if self.preferences.skill.grade:
@@ -146,8 +151,17 @@ class SkillLevelPage(WelcomeWizardPage):
         self.ratings[subject].set_rating(rating)
 
     def on_rating_changed(self, subject: str, rating: int):
-        """Handle rating changes and store in wizard fields"""
-        self.registerField(f"rating_{subject}", self.ratings[subject])
+        """Handle rating changes and store in preferences"""
+        subject_map = {
+            tr("German"): "german",
+            tr("Foreign Language"): "foreign_language", 
+            tr("Mathematics"): "mathematics",
+            tr("Computer Science"): "computer_science",
+            tr("Natural Science"): "natural_science"
+        }
+        
+        if subject in subject_map:
+            self.preferences.skill.subjects[subject_map[subject]] = rating
 
 class CompletionPage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
