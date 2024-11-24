@@ -63,6 +63,10 @@ class GradePage(WelcomeWizardPage):
         self.grade_group = QButtonGroup()
         self.setup_ui()
         
+    def on_grade_selected(self, grade: str):
+        """Update preferences when grade is selected"""
+        self.preferences.skill.grade = int(grade.replace("+", ""))
+        
     def setup_ui(self):
         question_label = QLabel(tr("To customize learning for you, please answer the following questions:"))
         question_label.setWordWrap(True)
@@ -85,10 +89,6 @@ class GradePage(WelcomeWizardPage):
         self.main_layout.addWidget(question_label)
         self.main_layout.addWidget(grade_label)
         self.main_layout.addLayout(grade_layout)
-        
-        def on_grade_selected(self, grade: str):
-            """Update preferences when grade is selected"""
-            self.preferences.skill.grade = int(grade.replace("+", ""))
         
         # Set initial state from preferences
         if self.preferences.skill.grade:
