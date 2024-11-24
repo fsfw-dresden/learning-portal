@@ -37,14 +37,16 @@ class PortalWindow(QMainWindow):
         user_action.triggered.connect(self.show_wizard)
         toolbar.addAction(user_action)
         
-        # Add spacer to push settings to the right
+        # Add expanding spacer widget
         spacer = QWidget()
         spacer.setSizePolicy(1, 0)
         toolbar.addWidget(spacer)
         
-        # Add settings button
+        # Add settings button right-aligned
         settings_action = QAction(QIcon.fromTheme("preferences-system"), tr("Settings"), self)
         toolbar.addAction(settings_action)
+        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        toolbar.widgetForAction(settings_action).setLayoutDirection(Qt.RightToLeft)
         
         # Add content widget
         self.content = ContentWidget()
@@ -52,4 +54,4 @@ class PortalWindow(QMainWindow):
         
     def show_wizard(self):
         wizard = WelcomeWizard()
-        wizard.show()
+        wizard.exec_()
