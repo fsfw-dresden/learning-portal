@@ -135,8 +135,8 @@ class SkillLevelPage(WelcomeWizardPage):
     def initializePage(self):
         # Load initial ratings from preferences
         for subject, pref_name in self.subject_map.items():
-            if hasattr(self.preferences.skill.subjects, pref_name):
-                rating = getattr(self.preferences.skill.subjects, pref_name)
+            if pref_name in self.preferences.skill.subjects:
+                rating = self.preferences.skill.subjects[pref_name]
                 if rating:
                     self.update_stars(subject, rating)
             else:
