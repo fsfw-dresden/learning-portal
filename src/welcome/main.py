@@ -2,14 +2,19 @@ import sys
 import os
 import logging
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QTranslator, QLocale
+from PyQt5.QtCore import QTranslator, QLocale, Qt
 from welcome.wizard import WelcomeWizard
 
 def main():
     logging.basicConfig(level=logging.INFO)
     os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;qt.metadata.*=false'
     
+    # Enable high DPI scaling
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    
     app = QApplication(sys.argv)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
     
     # Initialize translation
     translator = QTranslator()
