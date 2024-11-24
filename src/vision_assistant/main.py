@@ -4,8 +4,10 @@ import logging
 import requests
 from urllib.parse import urljoin
 os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
+import base64
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
                             QMenu, QAction)
+from PyQt5.QtCore import QBuffer, QByteArray
 from core.assets import Assets
 from core.preferences import Preferences
 from vision_assistant.vision import VisionAssistant, HighlightOverlay
@@ -256,24 +258,28 @@ class CircularWindow(QWidget):
         try:
             self.logger.info(f"Sending prompt to API: {question}")
             
-            # Take screenshot and send to API
+            # Take screenshot and encode as base64
             screen = QApplication.primaryScreen()
             screenshot = screen.grabWindow(0)
-            screenshot.save("temp_screenshot.png")
             
-            with open("temp_screenshot.png", 'rb') as f:
-                files = {'screenshot': f}
-                data = {'question': question}
-                response = self.session.post(
-                    urljoin(self.base_url, f'sessions/{self.session_id}/analyze'),
-                    files=files,
-                    data=data
-                )
-                response.raise_for_status()
-                result = response.json()
-                
-            # Clean up temporary screenshot
-            os.remove("temp_screenshot.png")
+            # Save to bytes buffer and convert to base64
+            buffer = QByteArray()
+            buffer_device = QBuffer(buffer)
+            buffer_device.open(QBuffer.WriteOnly)
+            screenshot.save(buffer_device, "PNG")
+            screenshot_b64 = base64.b64encode(buffer.data()).decode()
+            
+            # Send to API
+            data = {
+                'screenshot': screenshot_b64,
+                'question': question
+            }
+            response = self.session.post(
+                urljoin(self.base_url, f'sessions/{self.session_id}/analyze'),
+                json=data
+            )
+            response.raise_for_status()
+            result = response.json()
             
             self.logger.info(f"Vision analysis response: {result}")
             
