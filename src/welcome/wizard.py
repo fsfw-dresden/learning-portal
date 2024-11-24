@@ -134,9 +134,8 @@ class SkillLevelPage(WelcomeWizardPage):
             grid.addWidget(label, i, 0)
             grid.addWidget(stars_widget, i, 1)
         
-        layout.addWidget(question_label)
-        layout.addLayout(grid)
-        self.setLayout(layout)
+        self.main_layout.addWidget(question_label)
+        self.main_layout.addLayout(grid)
     
     def initializePage(self):
         # Load initial ratings from preferences
@@ -234,7 +233,7 @@ class WelcomeWizard(QWizard):
         for display_name, pref_name in subject_map.items():
             for i, btn in enumerate(self.ratings[display_name].buttons()):
                 if btn.isChecked():
-                    setattr(self.preferences.skill, pref_name, i + 1)
+                    setattr(self.preferences.skill.subjects, pref_name, i + 1)
                     break
         
         # Save preferences
