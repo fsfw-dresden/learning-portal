@@ -1,5 +1,5 @@
 import logging
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication)
@@ -19,7 +19,10 @@ def tr(text: str, *args) -> str:
         return translated % args
     return translated
 
-class WelcomeWizardPage(QWizardPage, ABC):
+class WelcomeWizardPageMeta(type(QWizardPage), ABCMeta):
+    pass
+
+class WelcomeWizardPage(QWizardPage, metaclass=WelcomeWizardPageMeta):
     """Abstract base class for all welcome wizard pages"""
     def __init__(self, preferences: Preferences):
         super().__init__()
