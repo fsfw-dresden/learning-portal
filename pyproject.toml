@@ -22,13 +22,15 @@ build-backend = "hatchling.build"
 vision-assistant = "vision_assistant.main:main"
 welcome = "welcome.main:main"
 icon-finder = "helper.icon_finder:main"
+portal = "portal.main:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/vision_assistant", "src/welcome", "src/helper", "src/core"]
+packages = ["src/vision_assistant", "src/welcome", "src/helper", "src/core", "src/portal"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src/vision_assistant/assets" = "vision_assistant/assets"
 "src/welcome/translations" = "welcome/translations"
+"src/portal/translations" = "portal/translations"
 
 [tool.hatch.build]
 include = [
