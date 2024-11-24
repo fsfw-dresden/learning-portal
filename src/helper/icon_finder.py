@@ -62,7 +62,12 @@ def main():
     from PyQt5.QtWidgets import QApplication
     import sys
     
+    # Enable high DPI scaling
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    
     app = QApplication(sys.argv)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
     finder = IconFinder()
     finder.show()
     return app.exec_()

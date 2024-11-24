@@ -272,7 +272,12 @@ class CircularWindow(QWidget):
             self.logger.error(f"Error during vision analysis: {e}")
 
 def main():
+    # Enable high DPI scaling
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    
     app = QApplication(sys.argv)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
     window = CircularWindow()
     window.show()
     return app.exec_()
