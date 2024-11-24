@@ -55,15 +55,26 @@ class GradePage(QWizardPage):
         self.grade_group = QButtonGroup()
         grades = ["4", "5", "6", "7", "8+"]
         
+        # Create radio buttons for grades
+        grade_layout = QVBoxLayout()
         for i, grade in enumerate(grades):
             radio = QRadioButton(tr("%sth grade", grade))
             self.grade_group.addButton(radio, i)
-            layout.addWidget(radio)
+            grade_layout.addWidget(radio)
+            # Register field for each grade button
+            self.registerField(f"grade_{grade}", radio)
             
         layout.insertWidget(0, question_label)
         layout.insertWidget(1, grade_label)
+        layout.addLayout(grade_layout)
         
-        self.registerField("grade*", self.grade_group.buttons()[0])
+        # Set initial state from preferences
+        prefs = Preferences.load()
+        if prefs.skill.grade:
+            for btn in self.grade_group.buttons():
+                if btn.text() == tr("%sth grade", str(prefs.skill.grade)):
+                    btn.setChecked(True)
+                    break
         self.setLayout(layout)
 
 class SkillLevelPage(QWizardPage):
@@ -110,10 +121,28 @@ class SkillLevelPage(QWizardPage):
         layout.addLayout(grid)
         self.setLayout(layout)
     
+    def initializePage(self):
+        # Load initial ratings from preferences
+        prefs = Preferences.load()
+        subject_map = {
+            tr("German"): prefs.skill.german,
+            tr("Foreign Language"): prefs.skill.foreign_language,
+            tr("Mathematics"): prefs.skill.mathematics,
+            tr("Computer Science"): prefs.skill.computer_science,
+            tr("Natural Science"): prefs.skill.natural_science
+        }
+        
+        for subject, rating in subject_map.items():
+            if rating:
+                self.update_stars(subject, rating)
+
     def update_stars(self, subject, rating):
         buttons = self.ratings[subject].buttons()
         for i, btn in enumerate(buttons):
             btn.setIcon(QIcon.fromTheme("starred-symbolic" if i < rating else "non-starred-symbolic"))
+        
+        # Store the rating in a field
+        self.registerField(f"rating_{subject}", buttons[rating-1])
 
 class CompletionPage(QWizardPage):
     def __init__(self):
@@ -172,8 +201,28 @@ class WelcomeWizard(QWizard):
         self.finished.connect(self.on_finish)
     
     def on_finish(self):
+        # Get selected grade
+        for grade in ["4", "5", "6", "7", "8+"]:
+            if self.field(f"grade_{grade}"):
+                self.preferences.skill.grade = int(grade.rstrip('+'))
+                break
+        
+        # Get ratings
+        subject_map = {
+            tr("German"): "german",
+            tr("Foreign Language"): "foreign_language",
+            tr("Mathematics"): "mathematics",
+            tr("Computer Science"): "computer_science",
+            tr("Natural Science"): "natural_science"
+        }
+        
+        for display_name, pref_name in subject_map.items():
+            for i, btn in enumerate(self.ratings[display_name].buttons()):
+                if btn.isChecked():
+                    setattr(self.preferences.skill, pref_name, i + 1)
+                    break
+        
         # Save preferences
-        self.preferences.skill.grade = self.field("grade")
         self.preferences.save()
         self.logger.info(f"Saved preferences to: {Preferences._get_config_path()}")
         
