@@ -108,6 +108,10 @@
             drv = self.packages.${system}.schulstick;
             name = "icon-finder";
           };
+          portal = flake-utils.lib.mkApp {
+            drv = self.packages.${system}.schulstick;
+            name = "portal";
+          };
           default = self.apps.${system}.vision-assistant;
         };
 
