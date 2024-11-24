@@ -55,5 +55,29 @@
         <source>%s. Klasse</source>
         <translation>%s. Klasse</translation>
     </message>
+    <message>
+        <source>What's your nickname?</source>
+        <translation>Wie ist dein Spitzname?</translation>
+    </message>
+    <message>
+        <source>How old are you?</source>
+        <translation>Wie alt bist du?</translation>
+    </message>
+    <message>
+        <source>What's your gender?</source>
+        <translation>Was ist dein Geschlecht?</translation>
+    </message>
+    <message>
+        <source>Male</source>
+        <translation>Männlich</translation>
+    </message>
+    <message>
+        <source>Female</source>
+        <translation>Weiblich</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Divers</translation>
+    </message>
 </context>
 </TS>

@@ -2,7 +2,9 @@ import logging
 from abc import ABCMeta, abstractmethod
 from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
-                            QWidget, QPushButton, QApplication)
+                            QWidget, QPushButton, QApplication, QLineEdit)
+from PyQt5.QtGui import QIntValidator
+from core.preferences import Gender
 from welcome.components.star_rating import StarRating
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon
@@ -36,6 +38,60 @@ class WelcomeWizardPage(QWizardPage, metaclass=WelcomeWizardPageMeta):
     def setup_ui(self):
         """Setup the UI elements for this page"""
         pass
+import os
+import pwd
+
+class UserDataPage(WelcomeWizardPage):
+    def __init__(self, preferences: Preferences):
+        super().__init__(preferences)
+        self.setup_ui()
+        
+    def setup_ui(self):
+        # Get current unix username
+        try:
+            current_user = pwd.getpwuid(os.getuid()).pw_name
+        except:
+            current_user = "Anonymous"
+            
+        # Nickname field
+        nick_label = QLabel(tr("What's your nickname?"))
+        self.nick_input = QLineEdit(current_user)
+        self.nick_input.textChanged.connect(lambda t: setattr(self.preferences.user, 'nick', t))
+        
+        # Age field
+        age_label = QLabel(tr("How old are you?"))
+        self.age_input = QLineEdit(str(self.preferences.skill.age))
+        self.age_input.setValidator(QIntValidator(6, 99))
+        self.age_input.textChanged.connect(
+            lambda t: setattr(self.preferences.skill, 'age', int(t) if t else 6)
+        )
+        
+        # Gender selection
+        gender_label = QLabel(tr("What's your gender?"))
+        gender_layout = QHBoxLayout()
+        self.gender_group = QButtonGroup()
+        
+        for i, gender in enumerate([Gender.MALE, Gender.FEMALE, Gender.OTHER]):
+            radio = QRadioButton(tr(gender.value.capitalize()))
+            self.gender_group.addButton(radio, i)
+            gender_layout.addWidget(radio)
+            if self.preferences.user.gender == gender:
+                radio.setChecked(True)
+            radio.toggled.connect(
+                lambda checked, g=gender: setattr(self.preferences.user, 'gender', g) if checked else None
+            )
+        
+        # Add all to layout
+        self.main_layout.addWidget(nick_label)
+        self.main_layout.addWidget(self.nick_input)
+        self.main_layout.addSpacing(20)
+        self.main_layout.addWidget(age_label)
+        self.main_layout.addWidget(self.age_input)
+        self.main_layout.addSpacing(20)
+        self.main_layout.addWidget(gender_label)
+        self.main_layout.addLayout(gender_layout)
+        self.main_layout.addStretch()
+
 class WelcomePage(WelcomeWizardPage):
     def __init__(self, preferences: Preferences):
         super().__init__(preferences)
@@ -188,6 +244,7 @@ class WelcomeWizard(QWizard):
         
         # Add pages
         self.addPage(WelcomePage(self.preferences))
+        self.addPage(UserDataPage(self.preferences))
         self.addPage(GradePage(self.preferences))
         self.addPage(SkillLevelPage(self.preferences))
         self.addPage(CompletionPage(self.preferences))
