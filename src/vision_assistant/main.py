@@ -24,6 +24,9 @@ class CircularWindow(QWidget):
         self.tutor_view = None
         self.preferences = Preferences.load()
         
+        # Setup logging
+        self.logger = logging.getLogger(__name__)
+        
         # Initialize API session
         self.base_url = os.getenv('VISION_API_URL', 'http://localhost:8000')
         self.api_key = os.getenv('VISION_API_KEY', 'development_key')
