@@ -7,7 +7,7 @@ from welcome.wizard import WelcomeWizard
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
+    os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;qt.metadata.*=false'
     
     app = QApplication(sys.argv)
     
