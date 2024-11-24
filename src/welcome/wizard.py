@@ -18,8 +18,9 @@ def tr(text: str, *args) -> str:
         return translated % args
     return translated
 class WelcomePage(QWizardPage):
-    def __init__(self):
+    def __init__(self, preferences: Preferences):
         super().__init__()
+        self.preferences = preferences
         
         layout = QVBoxLayout()
         
@@ -42,8 +43,9 @@ class WelcomePage(QWizardPage):
         self.setLayout(layout)
 
 class GradePage(QWizardPage):
-    def __init__(self):
+    def __init__(self, preferences: Preferences):
         super().__init__()
+        self.preferences = preferences
         layout = QVBoxLayout()
         
         question_label = QLabel(tr("To customize learning for you, please answer the following questions:"))
@@ -69,17 +71,17 @@ class GradePage(QWizardPage):
         layout.addLayout(grade_layout)
         
         # Set initial state from preferences
-        prefs = Preferences.load()
-        if prefs.skill.grade:
+        if self.preferences.skill.grade:
             for btn in self.grade_group.buttons():
-                if btn.text() == tr("%sth grade", str(prefs.skill.grade)):
+                if btn.text() == tr("%sth grade", str(self.preferences.skill.grade)):
                     btn.setChecked(True)
                     break
         self.setLayout(layout)
 
 class SkillLevelPage(QWizardPage):
-    def __init__(self):
+    def __init__(self, preferences: Preferences):
         super().__init__()
+        self.preferences = preferences
         layout = QVBoxLayout()
         
         question_label = QLabel(tr("How do you rate yourself in the following areas?"))
@@ -123,13 +125,12 @@ class SkillLevelPage(QWizardPage):
     
     def initializePage(self):
         # Load initial ratings from preferences
-        prefs = Preferences.load()
         subject_map = {
-            tr("German"): prefs.skill.german,
-            tr("Foreign Language"): prefs.skill.foreign_language,
-            tr("Mathematics"): prefs.skill.mathematics,
-            tr("Computer Science"): prefs.skill.computer_science,
-            tr("Natural Science"): prefs.skill.natural_science
+            tr("German"): self.preferences.skill.german,
+            tr("Foreign Language"): self.preferences.skill.foreign_language,
+            tr("Mathematics"): self.preferences.skill.mathematics,
+            tr("Computer Science"): self.preferences.skill.computer_science,
+            tr("Natural Science"): self.preferences.skill.natural_science
         }
         
         for subject, rating in subject_map.items():
@@ -145,8 +146,9 @@ class SkillLevelPage(QWizardPage):
         self.registerField(f"rating_{subject}", buttons[rating-1])
 
 class CompletionPage(QWizardPage):
-    def __init__(self):
+    def __init__(self, preferences: Preferences):
         super().__init__()
+        self.preferences = preferences
         layout = QVBoxLayout()
         
         done_label = QLabel(tr("Done!"))
@@ -179,10 +181,10 @@ class WelcomeWizard(QWizard):
         self.setWizardStyle(QWizard.ModernStyle)
         
         # Add pages
-        self.addPage(WelcomePage())
-        self.addPage(GradePage())
-        self.addPage(SkillLevelPage())
-        self.addPage(CompletionPage())
+        self.addPage(WelcomePage(self.preferences))
+        self.addPage(GradePage(self.preferences))
+        self.addPage(SkillLevelPage(self.preferences))
+        self.addPage(CompletionPage(self.preferences))
         
         # Style navigation buttons
         self.setButtonText(QWizard.NextButton, "")
