@@ -41,6 +41,11 @@ class UserPreferences:
     locale: str = "de_DE"
     gender: Gender = Gender.OTHER
 
+    def __post_init__(self):
+        # Ensure gender is always a Gender enum
+        if isinstance(self.gender, str):
+            self.gender = Gender(self.gender)
+
 
 @dataclass
 class Preferences:
@@ -75,8 +80,12 @@ class Preferences:
         config_path = self._get_config_path()
         config_path.parent.mkdir(parents=True, exist_ok=True)
         
+        # Convert to dict and ensure Gender enum is serialized as string
+        data = asdict(self)
+        data['user']['gender'] = data['user']['gender'].value
+        
         with open(config_path, 'w') as f:
-            yaml.dump(asdict(self), f)
+            yaml.dump(data, f)
 
     @staticmethod
     def _get_config_path() -> Path:
