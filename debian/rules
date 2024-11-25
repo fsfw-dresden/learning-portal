@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=schulstick
+export DH_VERBOSE=1
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_build:
+	dh_auto_build
+	# Build Next.js app
+	cd tutor-next && npm install && npm run build
+	# Build translations
+	cd src/welcome/translations && \
+		for ts in *.ts; do \
+			lrelease $$ts; \
+		done
+
+override_dh_auto_install:
+	dh_auto_install
+	# Install Next.js app
+	mkdir -p debian/schulstick/usr/share/schulstick/tutor-next
+	cp -r tutor-next/.next debian/schulstick/usr/share/schulstick/tutor-next/
+	cp -r tutor-next/public debian/schulstick/usr/share/schulstick/tutor-next/
+	# Install translations
+	mkdir -p debian/schulstick/usr/share/schulstick/translations
+	cp src/welcome/translations/*.qm debian/schulstick/usr/share/schulstick/translations/
