@@ -22,12 +22,13 @@ export async function generateStaticParams() {
     units.forEach(unit => {
       const pagesDir = path.join(unitsDir, unit)
       const pages = fs.readdirSync(pagesDir)
+        .filter(file => file.endsWith('.md'))
       
       pages.forEach(page => {
         paths.push({
           application,
           unit,
-          page: page.replace('.md', '')
+          page: page.slice(0, -3) // Remove .md extension more safely
         })
       })
     })
