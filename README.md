@@ -69,7 +69,9 @@ nix run .#vision-assistant -L
 
 ### Development Environment
 
-For development work, enter the development shell:
+#### Using Nix
+
+For development work using Nix, enter the development shell:
 
 ```bash
 # Enter development environment
@@ -79,6 +81,24 @@ nix develop
 portal
 welcome
 vision-assistant
+```
+
+#### Using Python venv
+
+Alternatively, you can use Python's virtual environment:
+
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install the package in editable mode
+pip install -e .
+
+# Run components
+python -m portal.main
+python -m welcome.main
+python -m vision_assistant.main
 ```
 
 ### Development Tools
