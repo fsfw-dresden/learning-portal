@@ -1,0 +1,34 @@
+Source: schulstick
+Section: education
+Priority: optional
+Maintainer: Schulstick Team <team@schulstick.org>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-pyqt5,
+               python3-yaml,
+               python3-pillow,
+               python3-platformdirs,
+               nodejs,
+               npm
+
+Package: schulstick
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-pyqt5,
+         python3-pyqt5.qtwebengine,
+         python3-yaml,
+         python3-pillow,
+         python3-platformdirs,
+         nodejs
+Description: Educational portal app for IT competency development
+ An interactive educational portal integrated into the Schulstick platform,
+ designed to facilitate IT competency through interactive learning with
+ complex computer programs. Features include:
+ .
+  * Centralized access to curated OER learning materials
+  * Interactive step-by-step tutorials
+  * Integration with running applications
+  * Multi-language support (German/English)
