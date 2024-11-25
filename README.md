@@ -29,6 +29,29 @@ Many students struggle with finding documentation, tutorials, or example files a
 
 The project uses Nix for reproducible builds and dependencies management.
 
+### Tutor Next.js App
+
+The `tutor-next` directory contains a Next.js web application that serves tutorial content. Learning units are organized in markdown files under `tutor-next/markdown/[application]/[unit]/`, for example:
+
+- `markdown/audacity/lektion4/mixing.md` - Audio mixing tutorial for Audacity
+- `markdown/inkscape/lektion1/intro.md` - Introduction to Inkscape
+
+To run the Next.js development server:
+
+```bash
+cd tutor-next
+npm install
+npm run dev
+```
+
+To build for production:
+
+```bash
+cd tutor-next
+npm run build
+npm start
+```
+
 ### Quick Start
 
 Run components directly using Nix:
