@@ -1,10 +1,19 @@
 FROM debian:bookworm
 
-# Install only essential build tools
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     debhelper \
     devscripts \
+    dh-python \
+    python3-all \
+    python3-setuptools \
+    python3-pyqt5 \
+    python3-yaml \
+    python3-pillow \
+    python3-platformdirs \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
