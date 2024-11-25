@@ -17,6 +17,8 @@
           platformdirs
           qt-material
           setuptools  # Provides pkg_resources
+          requests
+          pyyaml
         ] ++ [ pkgs.qt5.qttools ]; # Adds lrelease and other Qt tools
         
         commonPropagatedBuildInputs = [];
@@ -88,6 +90,8 @@
             python3
           ] ++ commonBuildInputs ++ [
             python3Packages.pillow
+            python3Packages.requests
+            python3Packages.pyyaml
           ];
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
         };
