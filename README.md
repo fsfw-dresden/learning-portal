@@ -29,24 +29,43 @@ Many students struggle with finding documentation, tutorials, or example files a
 
 The project uses Nix for reproducible builds and dependencies management.
 
-To get started:
+### Quick Start
+
+Run components directly using Nix:
+
+```bash
+# Run the welcome wizard
+nix run .#welcome -L
+
+# Run the portal app
+nix run .#portal -L
+
+# Run the vision assistant
+nix run .#vision-assistant -L
+```
+
+### Development Environment
+
+For development work, enter the development shell:
 
 ```bash
 # Enter development environment
 nix develop
 
-# Run the portal app
+# Then run components directly:
 portal
-
-# Run the welcome wizard
 welcome
-
-# Run the vision assistant
 vision-assistant
-
-# Run the icon finder utility
-icon-finder
 ```
+
+### Development Tools
+
+Several utilities are available to help with development:
+
+- **Icon Finder**: A utility to browse and search available theme icons
+  ```bash
+  nix run .#icon-finder -L
+  ```
 
 ## License
 
