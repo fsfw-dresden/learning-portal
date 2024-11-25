@@ -93,6 +93,7 @@
           
           # Add shell aliases for development convenience
           shellHook = ''
+            export PYTHONPATH="$PWD/src:$PYTHONPATH"
             alias vision-assistant="python -m vision_assistant.main"
             alias welcome="python -m welcome.main"
             alias icon-finder="python -m helper.icon_finder"
