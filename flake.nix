@@ -94,6 +94,20 @@
             python3Packages.pyyaml
           ];
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+          
+          # Add shell aliases for development convenience
+          shellHook = ''
+            alias vision-assistant="python -m vision_assistant.main"
+            alias welcome="python -m welcome.main"
+            alias icon-finder="python -m helper.icon_finder"
+            alias portal="python -m portal.main"
+            
+            echo "Development shell aliases available:"
+            echo "  vision-assistant  - Run the vision assistant"
+            echo "  welcome          - Run the welcome wizard"
+            echo "  icon-finder      - Run the icon finder utility"
+            echo "  portal           - Run the portal app"
+          '';
         };
       }
     );
