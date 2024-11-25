@@ -1,7 +1,7 @@
 [project]
 name = "schulstick"
 version = "0.1.0"
-description = "PyQt5 Vision Assistant Application"
+description = "Interactive educational portal app for IT competency development with OER learning materials"
 requires-python = ">=3.8"
 dependencies = [
     "PyQt5",
