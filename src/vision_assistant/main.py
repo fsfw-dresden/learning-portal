@@ -32,12 +32,12 @@ class CircularWindow(QWidget):
         self.api_key = os.getenv('VISION_API_KEY', 'development_key')
         self.session = requests.Session()
         self.session.headers.update({
-            'Authorization': f'Bearer {self.api_key}'
+            'X-API-KEY': self.api_key
         })
         
         # Create initial session
         try:
-            response = self.session.post(urljoin(self.base_url, 'sessions'))
+            response = self.session.post(urljoin(self.base_url, 'session'))
             response.raise_for_status()
             self.session_id = response.json()['session_id']
         except Exception as e:
@@ -296,7 +296,7 @@ class CircularWindow(QWidget):
                 'question': question
             }
             response = self.session.post(
-                urljoin(self.base_url, f'sessions/{self.session_id}/analyze'),
+                urljoin(self.base_url, f'vision/{self.session_id}/analyze'),
                 json=data
             )
             response.raise_for_status()
