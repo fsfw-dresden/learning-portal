@@ -202,7 +202,7 @@ class CircularWindow(QWidget):
         
         # Close action
         close_action = QAction(QIcon.fromTheme("window-close"), "Close", self)
-        close_action.triggered.connect(self.close)
+        close_action.triggered.connect(lambda: (menu.close(), self.close()))
         menu.addAction(close_action)
         
         # Calculate menu position to be horizontally centered
