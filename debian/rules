@@ -28,7 +28,7 @@ override_dh_auto_install:
 	# Install Next.js app
 	mkdir -p debian/schulstick/usr/share/schulstick/tutor-next
 	cp -r tutor-next/.next debian/schulstick/usr/share/schulstick/tutor-next/
-	cp -r tutor-next/public debian/schulstick/usr/share/schulstick/tutor-next/
+	cp -r tutor-next/markdown debian/schulstick/usr/share/schulstick/tutor-next/
 	# Install translations
 	mkdir -p debian/schulstick/usr/share/schulstick/translations
 	cp src/welcome/translations/*.qm debian/schulstick/usr/share/schulstick/translations/
