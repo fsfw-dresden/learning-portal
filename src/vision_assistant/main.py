@@ -4,19 +4,18 @@ import logging
 import requests
 from urllib.parse import urljoin
 from urllib.parse import urljoin
-os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
 import base64
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit,
+from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLineEdit,
                             QMenu, QAction)
 from PyQt5.QtCore import QBuffer, QByteArray
 from core.assets import Assets
 from core.preferences import Preferences
-from vision_assistant.vision import VisionAssistant, HighlightOverlay
+from vision_assistant.vision import HighlightOverlay
 from vision_assistant.tutor import TutorView
-from PyQt5.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, QRect
-from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QMovie, QRegion,
-                        QScreen, QIcon, QPixmap)
+from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
+from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QIcon)
 
+os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
 
 class CircularWindow(QWidget):
     def __init__(self):
@@ -62,13 +61,6 @@ class CircularWindow(QWidget):
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
         
-        # Initialize vision assistant
-        try:
-            self.vision_assistant = VisionAssistant()
-        except ValueError as e:
-            self.logger.error(f"Failed to initialize VisionAssistant: {e}")
-            self.vision_assistant = None
-            
         self.initUI()
         
     def initUI(self):
@@ -292,10 +284,6 @@ class CircularWindow(QWidget):
         super().closeEvent(event)
             
     def analyze_screenshot(self):
-        if not self.vision_assistant:
-            self.logger.error("Vision Assistant not initialized")
-            return
-            
         question = self.search_input.text()
         if not question:
             self.logger.warning("No search query provided")
@@ -321,7 +309,7 @@ class CircularWindow(QWidget):
                 'question': question
             }
             response = self.session.post(
-                urljoin(self.base_url, f'vision/{self.session_id}/analyze'),
+                urljoin(self.base_url, f'vision/{self.session_id}'),
                 json=data
             )
             response.raise_for_status()
