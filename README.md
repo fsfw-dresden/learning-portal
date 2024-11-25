@@ -40,16 +40,16 @@ To run the Next.js development server:
 
 ```bash
 cd tutor-next
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 To build for production:
 
 ```bash
 cd tutor-next
-npm run build
-npm start
+bun run build
+bun start
 ```
 
 ### Quick Start
