@@ -205,6 +205,14 @@ class CircularWindow(QWidget):
         tutor_action.triggered.connect(self.show_tutor)
         menu.addAction(tutor_action)
         
+        # Add separator
+        menu.addSeparator()
+        
+        # Close action
+        close_action = QAction(QIcon.fromTheme("window-close"), "Close", self)
+        close_action.triggered.connect(self.close)
+        menu.addAction(close_action)
+        
         # Calculate menu position to be horizontally centered
         menu_pos = self.mapToGlobal(pos)
         menu_pos.setX(menu_pos.x() - menu.sizeHint().width() // 2)
@@ -265,6 +273,23 @@ class CircularWindow(QWidget):
         if not self.tutor_view:
             self.tutor_view = TutorView()
         self.tutor_view.show()
+    
+    def cleanup_session(self):
+        """Clean up API session on close"""
+        if self.session_id:
+            try:
+                response = self.session.delete(
+                    urljoin(self.base_url, f'session/{self.session_id}')
+                )
+                response.raise_for_status()
+                self.logger.info("Successfully cleaned up API session")
+            except Exception as e:
+                self.logger.error(f"Error cleaning up API session: {e}")
+    
+    def closeEvent(self, event):
+        """Handle window close event"""
+        self.cleanup_session()
+        super().closeEvent(event)
             
     def analyze_screenshot(self):
         if not self.vision_assistant:
