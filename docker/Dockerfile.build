@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     dh-python \
     python3-all \
     python3-setuptools \
+    python3-hatchling \
     python3-pyqt5 \
     python3-yaml \
     python3-pillow \
