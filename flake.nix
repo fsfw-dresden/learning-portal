@@ -88,11 +88,7 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             python3
-          ] ++ commonBuildInputs ++ [
-            python3Packages.pillow
-            python3Packages.requests
-            python3Packages.pyyaml
-          ];
+          ] ++ commonBuildInputs;
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
           
           # Add shell aliases for development convenience
