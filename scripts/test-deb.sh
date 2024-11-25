@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.deb 2>/dev/null)" ]; then
