@@ -202,7 +202,12 @@ class CircularWindow(QWidget):
         
         # Close action
         close_action = QAction(QIcon.fromTheme("window-close"), "Close", self)
-        close_action.triggered.connect(lambda: (menu.close(), self.close()))
+        def close_sequence():
+            menu.hide()  # Hide instead of close
+            # Use singleShot timer to delay window close slightly
+            from PyQt5.QtCore import QTimer
+            QTimer.singleShot(100, self.close)
+        close_action.triggered.connect(close_sequence)
         menu.addAction(close_action)
         
         # Calculate menu position to be horizontally centered
