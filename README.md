@@ -1,5 +1,5 @@
 # Schulstick Portal App
-![Release Workflow](https://github.com/fsfw-dresden/schulstick-portal/actions/workflows/release.yml/badge.svg)
+![Release Workflow](https://github.com/fsfw-dresden/schulstick-portal/actions/workflows/release.yml/badge.svg?event=push)
 
 An open educational portal app integrated into the "Schulstick" free software platform, designed to facilitate IT competency through interactive learning with complex computer programs. The project aims to promote interest in STEM subjects and ensure confident, curious, and sovereign handling of IT.
 
