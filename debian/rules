@@ -9,6 +9,8 @@ export PYBUILD_SYSTEM=distutils
 
 override_dh_auto_clean:
 	dh_auto_clean
+	rm -rf schulstick
+	rm -f dist/*.deb
 	rm -rf .pytest_cache
 	rm -rf src/*.egg-info
 	rm -rf build
