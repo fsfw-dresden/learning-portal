@@ -2,12 +2,10 @@
 
 export PYBUILD_NAME=schulstick
 export DH_VERBOSE=1
-export PYBUILD_BUILD_ARGS=--no-isolation
-export PYBUILD_SYSTEM=pyproject
-export PYBUILD_INSTALL_ARGS=--install-scripts=/usr/bin
+export PYBUILD_SYSTEM=distutils
 
 %:
-	dh $@ --with python3 --buildsystem=pybuild
+	dh $@ --with python3
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -31,6 +29,8 @@ override_dh_auto_test:
 
 override_dh_auto_install:
 	dh_auto_install
+	# Install pip dependencies
+	pip3 install --system --target=debian/schulstick/usr/lib/python3/dist-packages dataclass-wizard[yaml]
 	# Install markdown tutorials
 	mkdir -p debian/schulstick/usr/share/schulstick/tutor-next
 	cp -r tutor-next/markdown debian/schulstick/usr/share/schulstick/tutor-next/

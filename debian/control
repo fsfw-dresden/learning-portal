@@ -5,14 +5,12 @@ Maintainer: Schulstick Team <team@schulstick.org>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
                python3-all,
-               python3-pip,
                python3-setuptools,
-               python3-hatchling,
+               python3-pip,
                python3-pyqt5,
                python3-yaml,
                python3-pillow,
                python3-platformdirs,
-               pybuild-plugin-pyproject,
                nodejs,
                npm
 
@@ -25,6 +23,7 @@ Depends: ${python3:Depends},
          python3-yaml,
          python3-pillow,
          python3-platformdirs,
+         python3-pip,
          nodejs
 Description: Educational portal app for IT competency development
  An interactive educational portal integrated into the Schulstick platform,
