@@ -113,12 +113,42 @@ Bitte suche für dein Tutorial ein geeignetes Bild heraus oder erzeuge ein eigen
 Vielleicht sollten wir in metadata.yml die Quelle + Lizens des Bildes aufnehmen?
 -->
 
-### scripte
+### optionale Erweiterungen
 
-<!-- TODO -->
+Die bisher betrachteten 3 Dateien sind ausreichend um ein minimales Tutorial zu erstellen.
+
+Wenn du direkt beginnen magst, kannst du gerne direkt im Kapitel [Neue Tutorials erstellen](#Neue Tutorials erstellen) weiterlesen.
+<!-- TODO
+Falls das Portal zwischen internen und externen Links unterscheided, wie können wir hier einen internen Link erzwingen?
+Das sollte möglich (der default?) sein, egal ob auf ein Kapitel in der gleichen Datei oder in einer anderen lection gelinkt wird…
+-->
+
+Der Vollständigkeit halber — falls du später nachschauen magst oder wenn es dich gleich interessiert — im folgenden noch die optionalen Konfigurationsoptionen für das Schulstick-Portal…
+
+#### Aufteilung und Verlinkung von Tutorials und Lektionen
+
+Wenn dein Tutorial sehr lang wird, kann es nützlich sein, das Tutorial in separate Dateien für unterschiedliche Lektionen zu unterteilen.
+
+<!-- TODO Beschreibung was es zu beachten gibt.
+Wie wird das im Portal angezeigt?
+Welche ist per default die erste Lektion? Die vom Dateinamen alphanumerisch erste?
+Um Vorschaubilder wiederzuverwenden werden symlinks verwendet?
+
+Wann lege ich einfach mehrere *.md-files im gleichen lektionsordner ab und wann benötige ich einen neuen Ordner? Immer dann, wenn die metadata.yml gleich/anders ist?
+-->
+
+Die Lektionen eines Tutorials können untereinander verlinkt werden. Als Linkziel wird dafür die relative Pfadangebe der verlinkten `.md`-Datei angegeben.
+<!-- TODO Beispiel -->
+
+<!-- TODO
+Erklärung von „intenen/externen“ Links (im Portal bleibende und im externen Browser öffnende) — Wie ist dafür die genaue Logik?
+-->
+
+#### Skripte
+
+<!-- TODO Wollen wir die Skripte der übersicht halber in einem unterordner `scripts` ablegen? Das würde auch reuse durch einen einzelnen symlink erlauben. -->
 
 
-### Aufteilung und Verlinkung von Tutorials und Lektionen
 
 
 ## Neue Tutorials erstellen
