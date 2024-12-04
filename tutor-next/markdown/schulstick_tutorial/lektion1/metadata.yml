@@ -1,0 +1,15 @@
+title: "Bereitstellen neuer Tutorials für den Schulstick"
+tags: 
+  - Schulstick
+  - Tutorial
+  - Lerninhalte
+minGrade: 5
+skillLevel: 2
+subjects:
+  - computer science
+  - german
+skillLevelPerSubject:
+  computer_science: 2
+  german: 2
+markdownFile: "intro.md"
+previewImage: "preview.png"
