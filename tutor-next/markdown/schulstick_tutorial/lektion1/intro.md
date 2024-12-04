@@ -2,7 +2,8 @@
 title: Bereitstellen neuer Tutorials für den Schulstick
 ---
 
-<!-- TODO: ist der titel erforderlich? welche anderen metadaten sind erwünscht? wo ist das spezifiziert? -->
+<!-- TODO: Ist der titel erforderlich? welche anderen metadaten sind erwünscht? wo ist das spezifiziert? -->
+<!-- TODO: (Warum) ist metadata.yml (in späterer zukunft) erforderlich/sinnvoll, statt die metadaten direkt in den markdown-metadaten zu speichern? -->
 
 <!-- TODO: gibt es ein glosar für das wording das wir im kontext des schulsticks verwenden? 
  * „Anleitung“ / „Tutorial“ ?
@@ -71,13 +72,46 @@ Es gibt einen [Online-Editor](https://liascript.github.io/LiveEditor/?/show/file
 
 ### metadata.yml
 
-<!-- TODO -->
+Die in Markdown/LiaScript geschriebene Datei (`intro.md`) ist ausreichend um eine Anleitung unabhängig vom Schulscript zu schreiben.
+
+[`metadata.yml`](https://raw.githubusercontent.com/fsfw-dresden/schulstick-portal/refs/heads/main/tutor-next/markdown/schulstick_tutorial/lektion1/metadata.yml) enthällt alle [Metadaten](https://de.wikipedia.org/wiki/Metadaten), welche vom Schulstick-Portal benötigt werden, um zusätzliche Funktionen zu ermöglichen.
+
+Wir werden in einem späteren Abschnitt beschreiben, wie die Datei einfach erstellt/angepasst/getestet werden kann und welche Werte in ihr erlaubt sind.
+<!-- TODO
+Für Welche Werte gibt es defaults? Welche Werte sind zwingend?
+Kann davon ausgegangen werden, dass beim Parsen Fehler rechtzeitig, vollständig und verständlich gemeldet werden?
+-->
+
+<!-- TODO
+Gibt es eine Maximallänge (oder Empfehlungen) für die Länge des Titels?
+-->
+
+<!-- TODO
+Schema!
+-->
+
+Nunächst ist für uns wichtig zu wissen, dass die Datei `metadata.yml`, welche für jedes Tutorial vorhanden sein muss, folgende beiden Zeilen enthällt:
+```yml
+markdownFile: "intro.md"
+previewImage: "preview.png"
+```
+
+Der Wert hinter dem Schlüsselwort `markdownFile` benennt die Markdown/LiaScript-Datei, welche den Anfang des Tutorials beinhaltet.
 
 
 ### preview.png
 
-<!-- TODO -->
+Das Schulstick-Portal zeigt in der Liste der vorhandenen Tutorials jeweils ein Vorschaubild. In unserem Fall `preview.png`. Die Datei muss unter dem Name existieren, wie sie in `metadata.yml` unter dem Schlüsselwort `previewImage` benannt wurde.
+<!-- TODO
+Was sind gültige Werte? Relative Pfade? URLs? Anderes?
+Gibt es einen Default? Oder wird bei fehlendem Eintrag ein Brauchbarer Fehler angezeigt?
+-->
 
+Bitte suche für dein Tutorial ein geeignetes Bild heraus oder erzeuge ein eigenes. Wenn ein vorhandenes Bild verwendet wird, bitte beachte, dass es unter einer freien Lizens steht.
+
+<!-- TODO
+Vielleicht sollten wir in metadata.yml die Quelle + Lizens des Bildes aufnehmen?
+-->
 
 ### scripte
 
