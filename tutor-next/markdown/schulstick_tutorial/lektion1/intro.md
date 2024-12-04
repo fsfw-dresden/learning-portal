@@ -23,7 +23,7 @@ Die folgende Anleitung erklärt alle nötigen Schritte um:
 
 1. Zu verstehen wie die Tutorials aufgebaut sind
 2. Ein neues Tutorial anzulegen
-3. Tutorials im Lernportal auf dem Unistick zu testen
+3. Tutorials im Lernportal auf dem Schulstick zu testen
 4. Inhalte zu veröffentlichen
 
 <!-- Kurzvorstellung des FSFW-Stick-Projekts https://youtu.be/9XeJtgMcmKk -->
@@ -146,9 +146,83 @@ Erklärung von „intenen/externen“ Links (im Portal bleibende und im externen
 
 #### Skripte
 
+##### Motivation
+
+Das Portal soll es ermöglichen, dass Tutorials als eng miteinander verknüpfte Kombination aus Anleitung und Anwendung bzw. Anwendungsumgebung interagieren können. Für viele Lerninhalte wird es ausreichen, wenn eine (oder mehrere) [GUI](https://de.wikipedia.org/wiki/Grafische_Benutzeroberfl%C3%A4che)-Anwendungen am Anfang einer Lektion geöffnet werden.
+<!-- TODO schlüsselwort in metadata.yml
+genau erklärung des verhaltens
+-->
+
+In einigen Fällen ist jedoch gewünscht, dem Ersteller des Tutorials mehr Kontrolle über erforderliche Umgebungen zu ermöglichen, als ein bereits vorinstalliertes Softwarepaket in seiner Originalversion zu starten. Manche Anwendungen müssen mit bestimmten Plugins, Konfigurationsdateien, sonstigen Argumenten oder in einer bestimmten Version vorhanden sein.
+Ein großer Mehrwert des bereitstellens der Tutorials auf dem Schulstick ist die Möglichkeit, dass der Ersteller der Lerninhalte genau die später vom Nutzer verwendete Version der Software testen und für die entsprechende Version korrekte Screenshots einbinden kann.
+Wenn Software über die Zeit aktuallisiert wird, kann nicht vom Kernteam des Schulsticks erwartet werden, dass immer alle Tutorials im Detail überprüft werden, ob in den Anleitungen Anpassungen nötig geworden sind. Daher ist es wünschenswert, das Wissen der Inhalteersteller zu nutzen, um zu gewährleisten, dass Anwendungen und Anleitungen aufeinander abgestimmt sind.
+
+<!-- TODO Langfristig könnte es hilfreich sein, wenn eine Anzahl generischer Tests implementiert werden, welche über die Metadaten deklarativ konfiguriert werden können (z.B. Versionstest über Semantic Versioning). Sollte aber lieber gründlich durchdacht und sauber implementiert werden… -->
+
+##### Hooks
+
 <!-- TODO Wollen wir die Skripte der übersicht halber in einem unterordner `scripts` ablegen? Das würde auch reuse durch einen einzelnen symlink erlauben. -->
 
+Entwicklern von Tutorials, die sich etwas besser mit Linux auskennen, können im Ordner ihrer Lektionen shell-Skripte ablegen, und bekommen folgende Möglichkeiten sich ins System „einzuhaken“:
 
+* `./scripts/run.sh`
+* `./scripts/run_test.sh`
+* `./scripts/install.sh`
+* `./scripts/install_test.sh`
+
+###### run.sh
+
+Wenn die Datei `./scripts/run.sh` im Lektionsordner existiert, wird anstatt der in `metadata.yml` benannten Anwendung das Shell-Skript ausgeführt.
+
+Auf diese Weise bekommt der Ersteller des Tutorials die Möglichkeit, GUI-Anwendungen und Komandozeilen-Umgebungen nach dem Bedürfnis des Tutorials zu starten. Das Skript läuft mit den Berechtigungen des Portal-Nutzers.
+
+Mittels `run.sh` kann bei Bedarf z.B. der [LiaScript-CodeRunner](https://github.com/liascript/CodeRunner) gestartet werden, welcher Code aus interaktiven LiaScript-Kursen evaluieren kann.
+
+###### run\_test.sh
+
+Wenn die Datei `./scripts/run_test.sh` existiert, wird diese beim Lektionsstart immer vor der eigentlichen Anwendung (bzw. `run.sh`) ausgeführt.
+
+Dieses Skript hat den Zweck unmittelbar vor der Laufzeit zu testen, ob alle Erwartungen des Tutorial-Erstellers erfüllt sind. Beispielsweise kann überprüft werden, ob eine Anwendung in der erwarteten Version installiert ist oder ob Systemeinstellungen und auf dem System vorhandene Ressourcen den Ansprüchen genügen.
+
+<!-- TODO Beispiele implementieren -->
+
+Wenn das Skript vorhanden ist, muss es sich wie folgt verhalten:
+
+* Das Skript sollte möglichst zügig terminieren
+* Der [Exit-Code](https://de.wikipedia.org/wiki/Return_Code) muss bei Erfolg `0` sein, in diesem Fall wird die Anwendung wie vom Nutzer erwartet gestartet.
+* Der Exit-Code darf bei erkannten Problemen die Exit-Codes gemäß dem Standart von [Nagios-Plugins](https://nagios-plugins.org/doc/guidelines.html#AEN78) zurückgeben.
+* Ausgabe an [stdout](https://de.wikipedia.org/wiki/Standard-Datenstr%C3%B6me#Standardausgabe_%28stdout%29) muss sich auf knappe, für die Zielgruppe des Tutorials verständliche Warnungen/Fehlermeldungen beschränken. Das Portal kann diese in einem Dialog an den Nutzer durchreichen.
+* Ausgaben an [stderr](https://de.wikipedia.org/wiki/Standard-Datenstr%C3%B6me#Standardfehlerausgabe_%28stderr%29) darf (beliebige) Debug-Ausgaben beinhalten. Sie werden dem Endnutzer vom Portal nicht durchgereicht.
+
+<!-- TODO in künftigen Versionen kann das Portal dem Nutzer interaktives Feedback ausgeben, sofortiges Implementieren im Portal ist nicht zwingend nötig -->
+
+| Exit-Code | Bedeutung | Vorgeschlagenes Verhalten des Portals vor Start der Anwendung                                                                                           |
+| --------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0         | OK        | Anwendung startet für den Nutzer transparent (keine zusätzliche Interaktion)                                                                            |
+| 1         | Warning   | Der Nutzer wird informiert, dass etwas nicht ganz korrekt ist, vormutlich aber das Tutorial im großen und ganzen dennoch laufen könnte/sollte           |
+| 2         | Critical  | Der Nutzer wird darauf hingewiesen, dass es grundlegende Probleme gab und nicht erwartet wird, dass das Tutorial erfolgeich nutzbar ist                 |
+
+###### install.sh
+
+Während die ersten beiden Skripte zur Laufzeit und mit Benutzerprivilegien liefen, ermöglichen `install.sh` und `install_test.sh` ähnliche Funktionalität zum Zeitpunkt der Installation durch einen Nutzer mit Administratorrechten.
+
+`install.sh` kann bei Bedarf Konfigurationsdateien (wie z.B. udev-Regeln) erstellen oder den Nutzer zu einer weiteren Benutzergruppe hinzufügen.
+
+###### install\_test.sh
+
+Im Vergleich zu `install.sh` sollte `install_test.sh` nie die Systemkonfiguration manipulieren, sondern ausschließlich zur Installtionszeit testen.
+
+Ausgabe und Return-Codes sollten sich genau wie bei `run_test.sh` verhalten.
+
+###### Sicherheitsüberlegungen
+
+Dies Skripte führen vom Tutorialersteller generierten und von der Community gereviewten Code auf dem System des Nutzers aus. Skripte und ihre Änderungen sollten daher von der Community genauso gründlich wie der Schulstick selbst überprüft werden. Für Tutorials mit Skripten wird ein Review-Prozess empfohlen, bei dem vor dem Mergen, mindestens ein Approval eines anderen Vertrauten Nutzers erteilt wurde.
+
+`run.sh` und `run_test.sh` laufen mit Nutzerprivilegien. Das Schadenspotential wird ähnlich eingeschätzt, wie jenes, welches Ersteller von Tutorials mittels bösartigen Inhalten in ihren Anleitungen verursachen können.
+Das erlauben wohl definierter und überprüfter Hooks kann einen Sicherheitsvorteil bieten, wenn sie einen Beitrag leisten, dass Tutorials höheren Standarts genügen müssen. Der Mechanismus der Hooks sollte genutzt werden, um dubiose Installationsanleitungen in den Tutorials konsequent zu verbieten. Dies betrifft insbesondere das Laden von Code aus Drittquellen.
+
+`install.sh` und `install_test.sh` stellen einen Sicherheitskompromiss zu gunsten der Umsetzbarkeit, Wartbarkeit und Qualität von Inhalten dar.
+Idealerweise würde anstelle von `install.sh` alle benötigte Funktionalität ausschließlich vom Ersteller der Distribution („Schulstick“) ermöglicht und durch eine unprivilegierte Ausführung von `install_test.sh` getestet werden. Eine solche Umsetzung ist mittelfristig denkbar. Bis dahin können `install.sh` und `install_test.sh` eine deutliche Vereinfachung der Erstellung neuer Lerninhalte ermöglichen. Wenn vom Ersteller der Distribution `install.sh` und `install_test.sh` aller Lerninhalte reviewed werden, kann das Schadenspotential durch böswillige Ersteller von Inhalten als niedrig eingeschätzt werden.
 
 
 ## Neue Tutorials erstellen
@@ -156,7 +230,7 @@ Erklärung von „intenen/externen“ Links (im Portal bleibende und im externen
 <!-- TODO -->
 
 
-## Tutorials im Lernportal auf dem Unistick testen
+## Tutorials im Lernportal auf dem Schulsstick testen
 
 <!-- TODO -->
 
