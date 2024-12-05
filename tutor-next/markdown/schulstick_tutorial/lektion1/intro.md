@@ -249,3 +249,22 @@ Idealerweise würde anstelle von `install.sh` alle benötigte Funktionalität au
 
 <!-- TODO -->
 
+
+## Features auf verschiedenen Umgebungen
+
+<!-- TODO gehört wahrscheinlich nicht ins Tutorial; bei Gelegenheit an passenden Ort verschieben -->
+
+|             | Portal @Schulstick         | externer Browser @Schulstick  | @www $Distribution                                                        |
+| ----------- | -------------------------- | ----------------------------- | ------------------------------------------------------------------------- |
+| liascript   | devserver/export           | devserver/export              | export                                                                    |
+| plattform   | schulstick                 | schulstick                    | (unzuverlässig / könnte durch flakes implementiert werden / out of scope) |
+| state       | ja                         | (patch liascript)             | (patch liascript)                                                         |
+| interaktion | ja                         | (ja)                          | (nicht ohne zusätzliche Anwendung)                                        |
+
+<!-- TODO gründlicher evaluieren und ausformulieren
+
+Aktuelles Verständnis von J03:
+* Es gibt ein Konzept, wie mittels Portal die gewünschte Funktionalität am kurzfristigsten umgesetzt werden kann.
+* Ich sehe für die meisten Funktionen keine Notwendigkeit, die Imlementierung im Portal zu tun und eine Nutzung in externen Browsern nicht zu unterstützen.
+* Der Schulstick hat als Plattform einen klaren Mehrwert gegenüber bestehenden Lösungen für Tutorials. Wenn eine Community qualitätiv hochwertige Tutorials pflegt, wären Lösungen denkbar, die Tutorials auch auf anderen Systemen zuverlässiger nutzbar zu machen. Das wäre aber ein eigenes Projekt…
+-->
