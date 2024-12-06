@@ -9,8 +9,8 @@ class EnvHelper:
     @staticmethod
     def get_environment() -> Environment:
         """Get the current environment from SCHULSTICK_ENV"""
-        env = os.getenv("SCHULSTICK_ENV", "development").lower()
-        return Environment.PRODUCTION if env == "production" else Environment.DEVELOPMENT
+        env = os.getenv("SCHULSTICK_ENV", "production").lower()
+        return Environment.DEVELOPMENT if env == "development" else Environment.PRODUCTION
 
     @staticmethod
     def is_production() -> bool:

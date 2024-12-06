@@ -111,8 +111,10 @@
           buildInputs = with pkgs; [
             python3
             debian-devscripts
+            x11docker # for testing the debian build in a XFCE environment
           ] ++ commonBuildInputs;
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+          SCHULSTICK_ENV = "development";
           
           # Add shell aliases for development convenience
           shellHook = ''
