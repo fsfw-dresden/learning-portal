@@ -1,4 +1,5 @@
-title: "Introduction to 3D Modeling with Blender"
+title: "lektion 1 - Blender Haus"
+description: "Einführung in die 3D Modellierung mit Blender"
 tags:
   - 3D
   - modeling
@@ -12,5 +13,7 @@ subjects:
 skillLevelPerSubject:
   art: 1
   computer_science: 1
-markdownFile: "intro.md"
+markdownFile: "README.md"
 previewImage: "preview.png"
+  
+  
