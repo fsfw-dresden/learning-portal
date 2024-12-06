@@ -10,7 +10,7 @@ from platformdirs import site_config_dir
 @dataclass
 class PortalConfig(YAMLWizard):
     """Configuration for the Schulstick Portal"""
-    unit_paths: List[str]  # Paths to unit directories (relative or absolute)
+    unit_root_path: str  # Path to unit directory (relative or absolute)
     liascript_devserver: str = "http://localhost:3000"
     liascript_html_path: str = "/liascript/index.html"
 
@@ -41,7 +41,7 @@ class PortalConfig(YAMLWizard):
     def get_default_config(cls) -> 'PortalConfig':
         """Return default configuration"""
         return cls(
-            unit_paths=['tutor-next/markdown']
+            unit_root_path='./tutor-next/markdown'
         )
 
     def save(self, path: Optional[Path] = None) -> None:

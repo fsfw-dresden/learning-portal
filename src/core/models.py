@@ -49,7 +49,15 @@ class UnitMetadata(YAMLWizard):
     def tutorial_url(self) -> Optional[str]:
         config = PortalConfig.load()
         liascript_url = f"{config.liascript_devserver}{config.liascript_html_path}?{config.liascript_devserver}/"
-        return f"{liascript_url}{Path(self.unit_path) / self.markdown_file}"
+        unit_path = self.get_relative_unit_path()
+        return f"{liascript_url}{unit_path / self.markdown_file}"
+
+    def get_relative_unit_path(self) -> Optional[Path]:
+        config = PortalConfig.load()
+        unit_path = Path(self.unit_path)
+        if unit_path.is_absolute():
+            return unit_path.relative_to(config.unit_root_path)
+        return unit_path
 
     @property
     def markdown_path(self) -> Optional[Path]:
