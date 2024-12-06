@@ -84,7 +84,11 @@ chmod +x /usr/local/bin/start
 
 COPY *.deb /dist/
 RUN apt-get update &&\
-    apt-get install -y breeze-icon-theme &&\
-    apt-get install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages -f /dist/*.deb || true
+    apt-get install -y breeze-icon-theme qt5ct &&\
+    apt-get install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages -f /dist/*.deb
+
+RUN mkdir -p /etc/xdg/qt5ct && \
+    echo '[Qt]\nstyle=Breeze' > /etc/xdg/qt5ct/qt5ct.conf && \
+    echo 'export QT_QPA_PLATFORMTHEME=qt5ct' >> /etc/profile.d/qt-style.sh
 
 CMD start
