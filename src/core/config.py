@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from typing import List, Optional
 from dataclasses import dataclass
+from venv import logger
+from core.env_helper import EnvHelper
 from dataclass_wizard import YAMLWizard
 from platformdirs import site_config_dir
 
@@ -17,15 +19,19 @@ class PortalConfig(YAMLWizard):
         """Load config from appropriate location based on environment"""
         config_path = cls._get_config_path()
         
+
+        logger.info(f"Config path: {config_path}")
         if not config_path.exists():
+            logger.info(f"Config file does not exist, using default config")
             return cls.get_default_config()
             
+        logger.info(f"Loading config from {config_path}")
         return cls.from_yaml_file(config_path)
     
     @staticmethod
     def _get_config_path() -> Path:
         """Get the appropriate config file path based on environment"""
-        if os.getenv('DEVELOPMENT'):
+        if EnvHelper.is_development():
             return Path('./dev_config/schulstick-portal-config.yml')
         else:
             config_dir = site_config_dir(appname='schulstick', multipath=True)

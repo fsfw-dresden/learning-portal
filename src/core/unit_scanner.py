@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List
+from venv import logger
 from fuzzywuzzy import fuzz
 from core.models import UnitMetadata
 from core.config import PortalConfig
@@ -13,6 +14,7 @@ class UnitScanner:
     def _scan_units(self) -> None:
         """Recursively scan for metadata.yml files in all configured paths"""
         seen_titles = set()
+        logger.info(f"Scanning units in {self.config.unit_paths}")
         
         for base_path in self.config.unit_paths:
             path = Path(base_path)
