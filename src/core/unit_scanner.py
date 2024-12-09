@@ -121,7 +121,7 @@ class UnitScanner:
                 logger.info(f"Loading lesson metadata from {lesson_yml}")
                 lesson = LessonMetadata.from_yaml_file(lesson_yml)
                 if not lesson.markdown_file:
-                    content_path = _find_content_file(lesson_dir)
+                    content_path = self._find_content_file(lesson_dir)
                     if not content_path:
                         return None
                     lesson.content_path = content_path
@@ -139,7 +139,7 @@ class UnitScanner:
                 logger.info(f"Creating simple lesson from {content_path}")
                 return SimpleLesson(
                     title=lesson_dir.name,
-                    content_path=content_md,
+                    content_path=content_path,
                     lesson_path=lesson_dir
                 )
                 
