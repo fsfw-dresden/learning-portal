@@ -127,13 +127,15 @@
             alias icon-finder="python -m helper.icon_finder"
             alias portal="python -m portal.main"
             alias tutor="python -m tutor.main"
+            alias devserver="npx @liascript/devserver --live --input ./OER-materials"
             
             echo "Development shell aliases available:"
-            echo "  vision-assistant  - Run the vision assistant"
+            echo "  vision-assistant - Run the vision assistant"
             echo "  welcome          - Run the welcome wizard"
             echo "  icon-finder      - Run the icon finder utility"
             echo "  portal           - Run the portal app"
             echo "  tutor            - Run the tutor app"
+            echo "  devserver        - Run the devserver for the example courses"
           '';
         };
       }

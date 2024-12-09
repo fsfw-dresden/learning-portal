@@ -31,27 +31,17 @@ Many students struggle with finding documentation, tutorials, or example files a
 
 The project uses Nix for reproducible builds and dependencies management.
 
-### Tutor Next.js App
+### Example OER Materials
 
-The `tutor-next` directory contains a Next.js web application that serves tutorial content. Learning units are organized in markdown files under `tutor-next/markdown/[application]/[unit]/`, for example:
+The `OER-materials` directory contains example courses. Learning units are organized in markdown files under `OER-materials/examples/[course_name]/[lesson_name]/`, for example:
 
-- `markdown/audacity/lektion4/mixing.md` - Audio mixing tutorial for Audacity
-- `markdown/inkscape/lektion1/intro.md` - Introduction to Inkscape
+- `OER-materials/examples/audacity/lektion4/mixing.md` - Audio mixing tutorial for Audacity
+- `OER-materials/examples/inkscape/lektion1/intro.md` - Introduction to Inkscape
 
-To run the Next.js development server:
-
-```bash
-cd tutor-next
-bun install
-bun run dev
-```
-
-To build for production:
+To serve the exampe courses during development, run the following command:
 
 ```bash
-cd tutor-next
-bun run build
-bun start
+npx @liascript/devserver --live --input ./OER-materials
 ```
 
 ### Quick Start
