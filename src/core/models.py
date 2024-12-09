@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
 from dataclass_wizard import YAMLWizard
 from enum import Enum
 from core.config import PortalConfig
+from core.env_helper import EnvHelper
 
 class DockPosition(str, Enum):
     TOP = "top"
@@ -30,43 +31,62 @@ class ProgramLaunchInfo:
     args: Optional[List[str]] = None
 
 @dataclass
-class UnitMetadata(YAMLWizard):
+class BaseLesson:
+    """Base class for all lessons"""
     title: str
-    tags: List[str]
-    min_grade: int
-    skill_level: int
-    subjects: List[str]
-    skill_level_per_subject: Dict[str, int]
-    markdown_file: str
-    preview_image: str
+    content_path: Path
+    lesson_path: Path
+    
+    @property
+    def markdown_path(self) -> Path:
+        return self.content_path
+
+@dataclass
+class LessonMetadata(BaseLesson, YAMLWizard):
+    """Lesson with metadata from lesson.yml"""
+    tags: List[str] = field(default_factory=list)
+    min_grade: int = 0
+    skill_level: int = 1
+    subjects: List[str] = field(default_factory=list)
+    skill_level_per_subject: Dict[str, int] = field(default_factory=dict)
+    preview_image: Optional[str] = None
     screen_hint: Optional[ScreenHint] = None
-    unit_url: str = None
-    html_path: str = None
-    unit_path: str = None
     program_launch_info: Optional[ProgramLaunchInfo] = None
 
     @property
-    def tutorial_url(self) -> Optional[str]:
-        config = PortalConfig.load()
-        liascript_url = f"{config.liascript_devserver}{config.liascript_html_path}?{config.liascript_devserver}/"
-        unit_path = self.get_relative_unit_path()
-        return f"{liascript_url}{unit_path / self.markdown_file}"
-
-    def get_relative_unit_path(self) -> Optional[Path]:
-        config = PortalConfig.load()
-        unit_path = Path(self.unit_path)
-        if unit_path.is_absolute():
-            return unit_path.relative_to(config.unit_root_path)
-        return unit_path
-
-    @property
-    def markdown_path(self) -> Optional[Path]:
-        if self.unit_path is None:
+    def preview_path(self) -> Optional[Path]:
+        if not self.preview_image:
             return None
-        return Path(self.unit_path) / self.markdown_file
-    
+        return self.lesson_path / self.preview_image
+
+@dataclass 
+class SimpleLesson(BaseLesson):
+    """Simple lesson with just markdown content"""
+    pass
+
+@dataclass
+class Course(YAMLWizard):
+    """Course containing multiple lessons"""
+    title: str
+    collection_name: str  # e.g. org_gitlab_user_repo
+    description: Optional[str] = None
+    preview_image: Optional[str] = None
+    course_path: Optional[Path] = None
+    lessons: List[BaseLesson] = field(default_factory=list)
+
     @property
     def preview_path(self) -> Optional[Path]:
-        if self.unit_path is None:
+        if not self.preview_image or not self.course_path:
             return None
-        return Path(self.unit_path) / self.preview_image
+        return self.course_path / self.preview_image
+
+    def get_relative_path(self) -> Optional[Path]:
+        if not self.course_path:
+            return None
+        config = PortalConfig.load()
+        if self.course_path.is_absolute():
+            return self.course_path.relative_to(config.unit_root_path)
+        return self.course_path
+
+# Keeping UnitMetadata for backwards compatibility
+UnitMetadata = LessonMetadata
