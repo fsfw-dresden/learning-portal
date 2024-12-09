@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 from dataclass_wizard import YAMLWizard
-from dataclass_wizard.decorators import json_field
 from enum import Enum
 from core.config import PortalConfig
 from core.env_helper import EnvHelper
@@ -35,18 +34,31 @@ class ProgramLaunchInfo:
 class BaseLesson:
     """Base class for all lessons"""
     title: str
-    content_path: Optional[Path] = json_field(default=None)
-    lesson_path: Optional[Path] = json_field(default=None)
+    content_path: Optional[str] = None
+    lesson_path: Optional[str] = None
     
     @property
-    def markdown_path(self) -> Path:
-        return self.content_path
-    
-    def validate(self):
+    def markdown_path(self) -> Optional[Path]:
         if not self.content_path:
-            raise ValueError("content_path is required")
+            return None
+        return Path(self.content_path)
+    
+    @property
+    def tutorial_url(self) -> Optional[str]:
+        if not self.content_path:
+            return None
+        config = PortalConfig.load()
+        scan_path = config.get_scan_path()
+        relative_path = Path(self.content_path).relative_to(scan_path)
+        liascript_url = f"{config.liascript_devserver}{config.liascript_html_path}?{config.liascript_devserver}/"
+        return f"{liascript_url}{relative_path.as_posix()}"
+    
+    def validate(self) -> bool:
+        if not self.content_path:
+            return False
         if not self.lesson_path:
-            raise ValueError("lesson_path is required")
+            return False
+        return True
 
 @dataclass
 class LessonMetadata(BaseLesson, YAMLWizard):
@@ -65,7 +77,7 @@ class LessonMetadata(BaseLesson, YAMLWizard):
     def preview_path(self) -> Optional[Path]:
         if not self.preview_image:
             return None
-        return self.lesson_path / self.preview_image
+        return Path(self.lesson_path) / self.preview_image
 
 @dataclass 
 class SimpleLesson(BaseLesson):
@@ -86,14 +98,14 @@ class Course(YAMLWizard):
     def preview_path(self) -> Optional[Path]:
         if not self.preview_image or not self.course_path:
             return None
-        return self.course_path / self.preview_image
+        return Path(self.course_path) / self.preview_image
 
     def get_relative_path(self) -> Optional[Path]:
         if not self.course_path:
             return None
         config = PortalConfig.load()
-        if self.course_path.is_absolute():
-            return self.course_path.relative_to(config.unit_root_path)
+        if Path(self.course_path).is_absolute():
+            return Path(self.course_path).relative_to(config.unit_root_path)
         return self.course_path
 
 # Keeping UnitMetadata for backwards compatibility

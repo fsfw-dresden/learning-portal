@@ -41,8 +41,15 @@ class PortalConfig(YAMLWizard):
     def get_default_config(cls) -> 'PortalConfig':
         """Return default configuration"""
         return cls(
-            unit_root_path='./OER-materials'
+            unit_root_path='.local/share/learning-portal/courses'
         )
+    
+    def get_scan_path(self) -> List[Path]:
+        """Get path to scan based on environment"""
+        if EnvHelper.is_development():
+            return Path("./OER-materials")
+        else:
+            return Path.home() / self.unit_root_path
 
     def save(self, path: Optional[Path] = None) -> None:
         """Save config to YAML file"""

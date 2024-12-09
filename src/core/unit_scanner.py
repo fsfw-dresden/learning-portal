@@ -15,36 +15,25 @@ class UnitScanner:
         self.courses: List[Course] = []
         self._scan_courses()
     
-    def _get_scan_paths(self) -> List[Path]:
-        """Get paths to scan based on environment"""
-        paths = []
-        if EnvHelper.is_development():
-            paths.append(Path("./OER-materials"))
-        else:
-            home = Path.home()
-            paths.append(home / ".local/share/learning-portal/courses")
-        return paths
-
     def _scan_courses(self) -> None:
         """Scan for courses in configured paths"""
-        for base_path in self._get_scan_paths():
-            if not base_path.exists():
+        base_path = self.config.get_scan_path()
+        if not base_path.exists():
+            logger.error(f"Scan path {base_path} does not exist")
+            return
+            
+        # Iterate through course collections
+        for collection_dir in base_path.iterdir():
+            if not collection_dir.is_dir():
                 continue
                 
-            logger.info(f"Scanning courses in {base_path}")
-            
-            # Iterate through course collections
-            for collection_dir in base_path.iterdir():
-                if not collection_dir.is_dir():
-                    continue
-                    
-                collection_name = collection_dir.name
-                if collection_name in ['examples', 'draft', 'private', 'unpublished']:
-                    # Handle special collections
-                    self._scan_collection(collection_dir, collection_name)
-                else:
-                    # Regular course collection
-                    self._scan_collection(collection_dir, collection_name)
+            collection_name = collection_dir.name
+            if collection_name in ['examples', 'draft', 'private', 'unpublished']:
+                # Handle special collections
+                self._scan_collection(collection_dir, collection_name)
+            else:
+                # Regular course collection
+                self._scan_collection(collection_dir, collection_name)
 
     def _scan_collection(self, collection_path: Path, collection_name: str) -> None:
         """Scan a course collection directory"""
@@ -58,24 +47,20 @@ class UnitScanner:
 
     def _load_course(self, course_dir: Path, collection_name: str) -> Optional[Course]:
         """Load a course from a directory"""
-        try:
-            course_yml = course_dir / "course.yml"
-            if course_yml.exists():
-                course = Course.from_yaml_file(course_yml)
-            else:
-                # Create minimal course from directory name
-                course = Course(
-                    title=course_dir.name,
-                    collection_name=collection_name
-                )
+        course_yml = course_dir / "course.yml"
+        if course_yml.exists():
+            course = Course.from_yaml_file(course_yml)
+        else:
+            # Create minimal course from directory name
+            course = Course(
+                title=course_dir.name,
+                collection_name=collection_name
+            )
+        
+        course.course_path = course_dir
+        course.lessons = self._scan_lessons(course_dir)
+        return course
             
-            course.course_path = course_dir
-            course.lessons = self._scan_lessons(course_dir)
-            return course
-            
-        except Exception as e:
-            logger.error(f"Error loading course from {course_dir}: {e}")
-            return None
 
     def _scan_lessons(self, course_dir: Path) -> List[BaseLesson]:
         """Scan for lessons in a course directory"""
@@ -89,7 +74,7 @@ class UnitScanner:
             if lesson:
                 lessons.append(lesson)
                 
-        return sorted(lessons, key=lambda l: l.lesson_path.name)
+        return sorted(lessons, key=lambda l: Path(l.lesson_path).name)
 
     def _find_content_file(self, lesson_dir: Path) -> Optional[Path]:
         """Find the content markdown file in a lesson directory"""
@@ -124,11 +109,11 @@ class UnitScanner:
                     content_path = self._find_content_file(lesson_dir)
                     if not content_path:
                         return None
-                    lesson.content_path = content_path
+                    lesson.content_path = content_path.as_posix()
                 else:
-                    lesson.content_path = lesson_dir / lesson.markdown_file 
+                    lesson.content_path = (lesson_dir / lesson.markdown_file).as_posix()
                 
-                lesson.lesson_path = lesson_dir
+                lesson.lesson_path = lesson_dir.as_posix()
                 if lesson.validate():
                     return lesson
                 else:
@@ -138,9 +123,9 @@ class UnitScanner:
                 # Create simple lesson from markdown file
                 logger.info(f"Creating simple lesson from {content_path}")
                 return SimpleLesson(
-                    title=lesson_dir.name,
-                    content_path=content_path,
-                    lesson_path=lesson_dir
+                    title=Path(lesson_dir).name,
+                    content_path=content_path.as_posix(),
+                    lesson_path=lesson_dir.as_posix()
                 )
                 
         except Exception as e:

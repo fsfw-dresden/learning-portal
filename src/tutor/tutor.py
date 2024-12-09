@@ -152,7 +152,11 @@ class TutorView(QWidget):
         self.content_layout.addWidget(self.web_view)
         
         if self.unit.tutorial_url:
-            initial_url = QUrl(self.unit.tutorial_url)
+            url = self.unit.tutorial_url
+            if url is None:
+                self.logger.error(f"Tutorial URL is not set for unit: {self.unit}")
+                return
+            initial_url = QUrl(url)
             self.web_view.load(initial_url)
             self.current_url = initial_url
             self.logger.info(f"Loading initial URL: {initial_url.toString()}")
