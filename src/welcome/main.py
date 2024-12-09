@@ -3,6 +3,7 @@ import os
 import logging
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTranslator, QLocale, Qt
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 from welcome.wizard import WelcomeWizard
 
 def main():
@@ -34,6 +35,11 @@ def main():
     
     wizard = WelcomeWizard()
     wizard.show()
-    return app.exec_()
+    app.exec_()
+
+    # Start portal main()
+    from portal.main import main as portal_main
+    return portal_main()
+
 if __name__ == "__main__":
     sys.exit(main())

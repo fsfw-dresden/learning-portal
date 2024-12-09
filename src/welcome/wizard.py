@@ -1,5 +1,6 @@
 import logging
 from abc import ABCMeta, abstractmethod
+import sys
 from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, 
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication, QLineEdit)
@@ -271,7 +272,5 @@ class WelcomeWizard(QWizard):
             self.preferences.save()
 
             self.logger.info(f"Saved preferences to: {Preferences._get_config_path()}")
+    
             
-            # Start tutor view
-            self.tutor = TutorView()
-            self.tutor.show()
