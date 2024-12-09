@@ -3,8 +3,6 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLineEdit,
 from PyQt5.QtCore import Qt, QTimer
 from core.unit_scanner import UnitScanner
 from portal.unit_card import UnitCard
-from portal.simple_unit_card import SimpleUnitCard
-from core.models import LessonMetadata, SimpleLesson
 
 class UnitFinderWidget(QWidget):
     def __init__(self, parent=None):
@@ -58,12 +56,12 @@ class UnitFinderWidget(QWidget):
         if query:
             units = self.scanner.search(query)
         else:
-            units = self.scanner.list_all()
+            units = self.scanner.list_all_lessons()
         self.display_units(units)
         
     def load_units(self):
         """Initial load of all units"""
-        units = self.scanner.list_all()
+        units = self.scanner.list_all_lessons()
         self.display_units(units)
         
     def display_units(self, units):
@@ -78,8 +76,5 @@ class UnitFinderWidget(QWidget):
         for i, unit in enumerate(units):
             row = i // 3  # 3 cards per row
             col = i % 3
-            if isinstance(unit, LessonMetadata):
-                card = UnitCard(unit)
-            else:  # SimpleLesson
-                card = SimpleUnitCard(unit)
+            card = UnitCard(unit)
             self.cards_layout.addWidget(card, row, col)

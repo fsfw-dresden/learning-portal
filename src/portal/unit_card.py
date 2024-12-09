@@ -2,11 +2,11 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                             QHBoxLayout, QFrame, QSizePolicy)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
-from core.unit_scanner import UnitMetadata
+from core.models import LessonMetadata
 from tutor.tutor import TutorView
 
 class UnitCard(QFrame):
-    def __init__(self, unit: UnitMetadata, parent=None):
+    def __init__(self, unit: LessonMetadata, parent=None):
         super().__init__(parent)
         self.unit = unit
         self.setFrameStyle(QFrame.StyledPanel | QFrame.Raised)
