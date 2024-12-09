@@ -34,12 +34,18 @@ class ProgramLaunchInfo:
 class BaseLesson:
     """Base class for all lessons"""
     title: str
-    content_path: Path
-    lesson_path: Path
+    content_path: Optional[Path] = None
+    lesson_path: Optional[Path] = None
     
     @property
     def markdown_path(self) -> Path:
         return self.content_path
+    
+    def validate(self):
+        if not self.content_path:
+            raise ValueError("content_path is required")
+        if not self.lesson_path:
+            raise ValueError("lesson_path is required")
 
 @dataclass
 class LessonMetadata(BaseLesson, YAMLWizard):
@@ -49,6 +55,7 @@ class LessonMetadata(BaseLesson, YAMLWizard):
     skill_level: int = 1
     subjects: List[str] = field(default_factory=list)
     skill_level_per_subject: Dict[str, int] = field(default_factory=dict)
+    markdown_file: Optional[str] = None
     preview_image: Optional[str] = None
     screen_hint: Optional[ScreenHint] = None
     program_launch_info: Optional[ProgramLaunchInfo] = None

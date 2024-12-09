@@ -95,27 +95,47 @@ class UnitScanner:
         """Load a lesson from a directory"""
         try:
             lesson_yml = lesson_dir / "lesson.yml"
-            content_md = lesson_dir / "content.md"
-            
-            markdown_files = list(lesson_dir.glob("*.md"))
-            
-            if not content_md.exists():
-                logger.warning(f"content.md not found in {lesson_dir}")
-                if not markdown_files:
-                    return None
-                content_md = markdown_files[0]  # Take first markdown file found
-                logger.info(f"Using {content_md.name} instead of content.md")
-            
-            if len(markdown_files) > 1:
-                logger.warning(f"Multiple markdown files found in {lesson_dir}: {[f.name for f in markdown_files]}")
+
+            def _find_content_file(self, lesson_dir: Path) -> Optional[Path]:
+                """Find the content markdown file in a lesson directory"""
+                content_md = lesson_dir / "content.md"
+                markdown_files = list(lesson_dir.glob("*.md"))
+                
+                if not content_md.exists():
+                    logger.warning(f"content.md not found in {lesson_dir}")
+                    if not markdown_files:
+                        return None
+                    content_md = markdown_files[0]  # Take first markdown file found
+                    logger.info(f"Using {content_md.name} instead of content.md")
+                
+                if len(markdown_files) > 1:
+                    logger.warning(f"Multiple markdown files found in {lesson_dir}: {[f.name for f in markdown_files]}")
+                
+                return content_md
                 
             if lesson_yml.exists():
+                logger.info(f"Loading lesson metadata from {lesson_yml}")
                 lesson = LessonMetadata.from_yaml_file(lesson_yml)
-                lesson.content_path = content_md
+                if not lesson.markdown_file:
+                    content_path = _find_content_file(lesson_dir)
+                    if not content_path:
+                        return None
+                    lesson.content_path = content_path
+                else:
+                    lesson.content_path = lesson_dir / lesson.markdown_file 
+                
                 lesson.lesson_path = lesson_dir
-                return lesson
+                if lesson.validate():
+                    return lesson
+                else:
+                    logger.error(f"Lesson metadata is invalid: {lesson}")
+                    return None
             else:
                 # Create simple lesson from markdown file
+                logger.info(f"Creating simple lesson from {content_md}")
+                content_md = _find_content_file(lesson_dir)
+                if not content_md:
+                    return None
                 return SimpleLesson(
                     title=lesson_dir.name,
                     content_path=content_md,
