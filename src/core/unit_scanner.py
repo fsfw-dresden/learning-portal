@@ -97,8 +97,12 @@ class UnitScanner:
             lesson_yml = lesson_dir / "lesson.yml"
             content_md = lesson_dir / "content.md"
             
+            # First try content.md, then look for any .md file
             if not content_md.exists():
-                return None
+                markdown_files = list(lesson_dir.glob("*.md"))
+                if not markdown_files:
+                    return None
+                content_md = markdown_files[0]  # Take first markdown file found
                 
             if lesson_yml.exists():
                 lesson = LessonMetadata.from_yaml_file(lesson_yml)
