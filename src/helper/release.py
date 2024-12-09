@@ -94,7 +94,7 @@ def generate_changelog_with_claude(commits):
 {commits}
 
 Summary should be 2 or three short sentences.
-Format the output in markdown with sections for Summary, Features, Fixes, and Other Changes."""
+Format the output in markdown with sections for Summary, Features, Fixes, and Other Changes. Do not include git commit hashes or any form of version numbers."""
 
     response = requests.post(
         'https://api.anthropic.com/v1/messages',

@@ -1,3 +1,33 @@
+# 0.1.3 (2024-12-09)
+
+## Summary
+
+This changelog covers a range of changes to the unit scanner and lesson loading functionality, including improvements to the portal window, unit card display, and Debian packaging. Additionally, some refactoring and cleanup tasks have been completed.
+
+## Features
+
+- Added `SimpleUnitCard` for displaying simple markdown lessons
+- Added warnings for missing `content.md` and multiple markdown files
+- Implemented fallback to first markdown file if `content.md` is missing
+- Refactored unit scanner to support new course and lesson structure
+
+## Fixes
+
+- Launched portal correctly
+- Resolved flake8 errors in unit scanner method calls
+- Resolved Path serialization and content file loading issues in unit scanner
+- Fixed Blender sample unit
+- Addressed issues with Debian packaging, including removing `python3-yaml` dependency and setting `PYTHONPATH` for `pip3 install`
+
+## Other Changes
+
+- Increased portal window default size
+- Finalized unit scanning mechanism and settings (one base unit path only)
+- Renamed `metatdata.yml` to `lesson.yml`
+- Improved lesson loading and validation in unit scanner
+- Removed `tutor-next` things and used new folder structure
+- Cleaned up build artifacts and temporary directories in `debian/rules`
+
 # 0.1.2 (2024-11-28)
 
 ## Summary
