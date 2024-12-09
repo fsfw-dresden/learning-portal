@@ -14,7 +14,7 @@ class PortalWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Schulstick Portal")
-        self.resize(800, 600)
+        self.resize(1024, 768)
         
         # Create central widget and layout
         central_widget = QWidget()
