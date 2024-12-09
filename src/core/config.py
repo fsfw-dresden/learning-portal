@@ -41,7 +41,7 @@ class PortalConfig(YAMLWizard):
     def get_default_config(cls) -> 'PortalConfig':
         """Return default configuration"""
         return cls(
-            unit_root_path='./tutor-next/markdown'
+            unit_root_path='./OER-materials'
         )
 
     def save(self, path: Optional[Path] = None) -> None:

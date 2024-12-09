@@ -157,7 +157,7 @@ In einigen Fällen ist jedoch gewünscht, dem Ersteller des Tutorials mehr Kontr
 Ein großer Mehrwert des bereitstellens der Tutorials auf dem Schulstick ist die Möglichkeit, dass der Ersteller der Lerninhalte genau die später vom Nutzer verwendete Version der Software testen und für die entsprechende Version korrekte Screenshots einbinden kann.
 Wenn Software über die Zeit aktuallisiert wird, kann nicht vom Kernteam des Schulsticks erwartet werden, dass immer alle Tutorials im Detail überprüft werden, ob in den Anleitungen Anpassungen nötig geworden sind. Daher ist es wünschenswert, das Wissen der Inhalteersteller zu nutzen, um zu gewährleisten, dass Anwendungen und Anleitungen aufeinander abgestimmt sind.
 
-<!-- TODO Langfristig könnte es hilfreich sein, wenn eine Anzahl generischer Tests implementiert werden, welche über die Metadaten deklarativ konfiguriert werden können (z.B. Versionstest über Semantic Versioning). Sollte aber lieber gründlich durchdacht und sauber implementiert werden… -->
+<!-- TODO Langfristig könnte es hilfreich sein, wenn eine Anzahl generischer Tests implementiert werden, welche über die Metadaten deklatutor-nextrativ konfiguriert werden können (z.B. Versionstest über Semantic Versioning). Sollte aber lieber gründlich durchdacht und sauber implementiert werden… -->
 
 ##### Hooks
 
