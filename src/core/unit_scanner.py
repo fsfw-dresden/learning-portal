@@ -91,27 +91,31 @@ class UnitScanner:
                 
         return sorted(lessons, key=lambda l: l.lesson_path.name)
 
+    def _find_content_file(self, lesson_dir: Path) -> Optional[Path]:
+        """Find the content markdown file in a lesson directory"""
+        content_md = lesson_dir / "content.md"
+        markdown_files = list(lesson_dir.glob("*.md"))
+        
+        if not content_md.exists():
+            logger.warning(f"content.md not found in {lesson_dir}")
+            if not markdown_files:
+                return None
+            content_md = markdown_files[0]  # Take first markdown file found
+            logger.info(f"Using {content_md.name} instead of content.md")
+        
+        if len(markdown_files) > 1:
+            logger.warning(f"Multiple markdown files found in {lesson_dir}: {[f.name for f in markdown_files]}")
+        
+        return content_md
+
     def _load_lesson(self, lesson_dir: Path) -> Optional[BaseLesson]:
         """Load a lesson from a directory"""
         try:
             lesson_yml = lesson_dir / "lesson.yml"
+            content_path = self._find_content_file(lesson_dir)
+            if not content_path:
+                return None
 
-            def _find_content_file(self, lesson_dir: Path) -> Optional[Path]:
-                """Find the content markdown file in a lesson directory"""
-                content_md = lesson_dir / "content.md"
-                markdown_files = list(lesson_dir.glob("*.md"))
-                
-                if not content_md.exists():
-                    logger.warning(f"content.md not found in {lesson_dir}")
-                    if not markdown_files:
-                        return None
-                    content_md = markdown_files[0]  # Take first markdown file found
-                    logger.info(f"Using {content_md.name} instead of content.md")
-                
-                if len(markdown_files) > 1:
-                    logger.warning(f"Multiple markdown files found in {lesson_dir}: {[f.name for f in markdown_files]}")
-                
-                return content_md
                 
             if lesson_yml.exists():
                 logger.info(f"Loading lesson metadata from {lesson_yml}")
@@ -132,10 +136,7 @@ class UnitScanner:
                     return None
             else:
                 # Create simple lesson from markdown file
-                logger.info(f"Creating simple lesson from {content_md}")
-                content_md = _find_content_file(lesson_dir)
-                if not content_md:
-                    return None
+                logger.info(f"Creating simple lesson from {content_path}")
                 return SimpleLesson(
                     title=lesson_dir.name,
                     content_path=content_md,

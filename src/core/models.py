@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from dataclass_wizard import YAMLWizard
+from dataclass_wizard.decorators import json_field
 from enum import Enum
 from core.config import PortalConfig
 from core.env_helper import EnvHelper
@@ -34,8 +35,8 @@ class ProgramLaunchInfo:
 class BaseLesson:
     """Base class for all lessons"""
     title: str
-    content_path: Optional[Path] = None
-    lesson_path: Optional[Path] = None
+    content_path: Optional[Path] = json_field(default=None)
+    lesson_path: Optional[Path] = json_field(default=None)
     
     @property
     def markdown_path(self) -> Path:
