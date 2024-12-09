@@ -1,4 +1,4 @@
 # Default configuration for Schulstick Portal
-unit_root_path: /usr/share/schulstick
+unit_root_path: .local/share/learning-portal/courses
 liascript_devserver: http://localhost:3000
 liascript_html_path: /liascript/index.html

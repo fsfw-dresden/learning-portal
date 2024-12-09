@@ -37,7 +37,7 @@ override_dh_auto_install:
 	PYTHONPATH=debian/schulstick/usr/lib/python3/dist-packages pip3 install --target=debian/schulstick/usr/lib/python3/dist-packages dataclass-wizard --no-deps
 	# Install markdown tutorials
 	mkdir -p debian/schulstick/usr/share/learning-portal/courses/examples/
-	cp -r OER-materials/examples debian/schulstick/usr/share/learning-portal/courses/examples
+	cp -r OER-materials/examples debian/schulstick/usr/share/learning-portal/courses/
 	# Install translations
 	mkdir -p debian/schulstick/usr/share/schulstick/translations
 	cp src/**/translations/*.qm debian/schulstick/usr/share/schulstick/translations/
