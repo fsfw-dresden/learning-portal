@@ -47,6 +47,11 @@ class PortalWindow(QMainWindow):
         create_action = QAction(QIcon.fromTheme("list-add"), tr("Create New Unit"), self)
         create_action.triggered.connect(self.show_create_form)
         toolbar.addAction(create_action)
+
+        # Add reload button
+        reload_action = QAction(QIcon.fromTheme("view-refresh"), tr("Reload Units"), self)
+        reload_action.triggered.connect(self.reload_units)
+        toolbar.addAction(reload_action)
         
         # Add settings button
         settings_action = QAction(QIcon.fromTheme("preferences-system"), tr("Settings"), self)
@@ -65,3 +70,7 @@ class PortalWindow(QMainWindow):
         if form.exec_() == UnitCreateForm.Accepted:
             # We'll implement the actual creation in the next step
             pass
+            
+    def reload_units(self):
+        """Reload all units by rescanning the collection"""
+        self.content.load_units()

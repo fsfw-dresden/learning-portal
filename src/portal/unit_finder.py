@@ -63,7 +63,8 @@ class UnitFinderWidget(QWidget):
         self.display_units(units)
         
     def load_units(self):
-        """Initial load of all units"""
+        """Load/reload all units"""
+        self.scanner = UnitScanner()  # Create new scanner instance
         units = self.scanner.list_all_lessons()
         self.display_units(units)
         
