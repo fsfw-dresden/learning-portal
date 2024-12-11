@@ -44,3 +44,11 @@ override_dh_auto_install:
 	# Install default config
 	mkdir -p debian/schulstick/etc/xdg/schulstick
 	cp debian/schulstick-portal-config.yml debian/schulstick/etc/xdg/schulstick/
+	# Install desktop file and wrapper
+	mkdir -p debian/schulstick/usr/share/applications
+	mkdir -p debian/schulstick/usr/share/learning-portal
+	mkdir -p debian/schulstick/usr/bin
+	cp debian/learning-portal.desktop debian/schulstick/usr/share/applications/
+	cp debian/portal-wrapper.sh debian/schulstick/usr/bin/
+	cp debian/learning-portal-logo.png debian/schulstick/usr/share/learning-portal/
+	chmod +x debian/schulstick/usr/bin/portal-wrapper.sh
