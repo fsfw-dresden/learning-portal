@@ -32,7 +32,20 @@ class CollapseIcons:
     RIGHT = ("▶", "◀")
 
 class TutorView(QWidget):
+    _instance = None
+    
+    @classmethod
+    def get_instance(cls, unit: BaseLesson) -> 'TutorView':
+        """Get or create the singleton instance"""
+        if cls._instance is not None:
+            cls._instance.close()
+            cls._instance = None
+        cls._instance = cls(unit)
+        return cls._instance
+    
     def __init__(self, unit: BaseLesson):
+        if TutorView._instance is not None:
+            raise RuntimeError("Use TutorView.get_instance() instead")
         super().__init__()
         self.unit = unit
         if isinstance(unit, LessonMetadata) and  unit.screen_hint != None:
@@ -369,8 +382,8 @@ class TutorView(QWidget):
             preferred_height=self.screen_hint.preferred_height
         )
         
-        # Create new window with the modified unit
-        new_window = TutorView(modified_unit)
+        # Create new window with the modified unit using singleton pattern
+        new_window = TutorView.get_instance(modified_unit)
         
         # Load the current URL if it exists
         if self.current_url:
