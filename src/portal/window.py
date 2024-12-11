@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from welcome.wizard import WelcomeWizard
 from portal.unit_finder import UnitFinderWidget
+from portal.unit_create_form import UnitCreateForm
 
 def tr(text: str) -> str:
     """Helper function for translations"""
@@ -42,6 +43,11 @@ class PortalWindow(QMainWindow):
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         toolbar.addWidget(spacer)
         
+        # Add create new unit button
+        create_action = QAction(QIcon.fromTheme("list-add"), tr("Create New Unit"), self)
+        create_action.triggered.connect(self.show_create_form)
+        toolbar.addAction(create_action)
+        
         # Add settings button
         settings_action = QAction(QIcon.fromTheme("preferences-system"), tr("Settings"), self)
         toolbar.addAction(settings_action)
@@ -53,3 +59,9 @@ class PortalWindow(QMainWindow):
     def show_wizard(self):
         wizard = WelcomeWizard()
         wizard.exec_()
+        
+    def show_create_form(self):
+        form = UnitCreateForm(self)
+        if form.exec_() == UnitCreateForm.Accepted:
+            # We'll implement the actual creation in the next step
+            pass
