@@ -323,7 +323,7 @@ class TutorView(QWidget):
         # Remove from proxy's active view
         from .tutor_proxy import TutorViewProxy
         proxy = TutorViewProxy.get_instance()
-        proxy.close_tutor()
+        proxy.remove_tutor(self.unit)
         super().closeEvent(event)
 
     def show_context_menu(self, pos):

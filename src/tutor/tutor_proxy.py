@@ -25,16 +25,25 @@ class TutorViewProxy(QObject):
         Open a tutor view for the given unit.
         If a view already exists, it will be brought to front.
         """
-        # If there's an active view, bring it to front
-        if self._active_view and not self._active_view.isHidden():
-            self._active_view.activateWindow()
-            self._active_view.raise_()
+
+        if self._active_view and self._active_view.unit == unit:
+            self._active_view.show()
             return self._active_view
+
+        if self._active_view:
+            self.close_tutor()
+
         
         # Create new view
         self._active_view = TutorView(unit)
+        self._active_view.show()
         return self._active_view
-    
+
+    def remove_tutor(self, unit: BaseLesson) -> None:
+        """Remove the tutor view for the given unit"""
+        if self._active_view and self._active_view.unit == unit:
+            self._active_view = None
+
     def close_tutor(self) -> None:
         """Close the active tutor view"""
         if self._active_view:

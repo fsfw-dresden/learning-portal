@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTranslator, QLocale, Qt
 from core.models import UnitMetadata
 from tutor.tutor import TutorView
+from tutor.tutor_proxy import TutorViewProxy
 
 def main():
     # Enable high DPI scaling
@@ -42,8 +43,7 @@ def main():
         try:
             unit = UnitMetadata.from_yaml_file(metadata_file)
             unit.unit_path = unit_dir
-            tutor = TutorView(unit)
-            tutor.show()
+            TutorViewProxy.get_instance().open_tutor(unit)
             return app.exec_()
         except Exception as e:
             print(f"Error loading unit: {e}")

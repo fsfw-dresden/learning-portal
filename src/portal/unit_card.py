@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
 from core.models import LessonMetadata
 from tutor.tutor import TutorView
+from tutor.tutor_proxy import TutorViewProxy
 
 class UnitCard(QFrame):
     def __init__(self, unit: LessonMetadata, parent=None):
@@ -90,6 +91,4 @@ class UnitCard(QFrame):
         
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            if not self.tutor_view:
-                self.tutor_view = TutorView(self.unit)
-            self.tutor_view.show()
+            TutorViewProxy.get_instance().open_tutor(self.unit)

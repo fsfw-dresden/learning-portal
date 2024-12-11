@@ -5,6 +5,7 @@ from PyQt5.QtGui import QIcon
 from core.models import SimpleLesson
 from tutor.tutor import TutorView
 from portal.tr import tr
+from tutor.tutor_proxy import TutorViewProxy
 
 class SimpleUnitCard(QFrame):
     def __init__(self, unit: SimpleLesson, parent=None):
@@ -63,6 +64,4 @@ class SimpleUnitCard(QFrame):
         
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            if not self.tutor_view:
-                self.tutor_view = TutorView(self.unit)
-            self.tutor_view.show()
+            TutorViewProxy.get_instance().open_tutor(self.unit)
