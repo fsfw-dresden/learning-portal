@@ -37,7 +37,7 @@
         packages = {
           schulstick-portal = pkgs.python3Packages.buildPythonApplication {
             pname = "schulstick-portal";
-            version = "0.1.3";
+            version = "0.1.4";
             src = ./.;
             format = "pyproject";
             

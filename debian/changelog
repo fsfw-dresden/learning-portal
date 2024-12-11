@@ -1,4 +1,4 @@
-schulstick (0.1.3) UNRELEASED; urgency=medium
+schulstick (0.1.4) UNRELEASED; urgency=medium
 
   * Major improvements to unit scanner and lesson loading:
     - Added SimpleUnitCard for displaying simple markdown lessons
@@ -17,12 +17,9 @@ schulstick (0.1.3) UNRELEASED; urgency=medium
     - Increased portal window default size
     - Finalized unit scanning mechanism with single base unit path
     - Updated class and method names in unit_card.py and unit_finder.py
-    - Renamed metatdata.yml to lesson.yml
     - Improved lesson loading and validation
-    - Removed tutor-next code and used new folder structure
-    - Cleaned up build artifacts and temporary directories in debian/rules
 
- -- Schulstick Team <info@schulstick.org>  Mon, 09 Dec 2024 19:41:30 +0100
+ -- Schulstick Team <info@schulstick.org>  Wed, 11 Dec 2024 03:24:27 +0100
 
 schulstick (0.1.2) unstable; urgency=medium
 

@@ -1,3 +1,26 @@
+# 0.1.4 (2024-12-11)
+
+## Summary
+
+This changelog covers a range of improvements to the learning portal application, including the addition of a desktop file and logo, a program launch confirmation dialog, and better handling of window closing and process termination. Several bug fixes have also been implemented, such as ensuring that the tutor application only opens once. It fixes the loading of single units without metadata.
+
+## Features
+
+- Added a desktop file, wrapper script, and logo to the application, improving the user experience.
+- Implemented a program launch confirmation dialog, providing users with more control over the application's startup.
+- Introduced the TutorViewProxy using the Virtual Proxy pattern, simplifying the management of TutorView instances.
+- Added a close button to the context menu, giving users a more intuitive way to exit the application.
+
+## Fixes
+
+- Enabled recursive submodules in the release workflow, ensuring that all necessary components are included in the deployment.
+- Allowed lesson metadata to be called `metadata.yml`, providing more flexibility in how this information is stored.
+- Implemented better singleton management and window close handling in the TutorView, preventing multiple instances from running simultaneously.
+
+## Other Changes
+
+- Added submodules for `schulstick-tutorial-docs` and `Jan_Maul_Blender`, expanding the content available to users.
+
 # 0.1.3 (2024-12-09)
 
 ## Summary
