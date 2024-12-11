@@ -321,10 +321,6 @@ class TutorView(QWidget):
         """Handle window close event"""
         if hasattr(self, 'program_process') and self.program_process:
             self.program_process.terminate()
-        # Remove from proxy's active view
-        from .tutor_proxy import TutorViewProxy
-        proxy = TutorViewProxy.get_instance()
-        proxy.remove_tutor(self.unit)
         super().closeEvent(event)
 
     def show_context_menu(self, pos):
@@ -449,3 +445,6 @@ class TutorView(QWidget):
         except json.JSONDecodeError as e:
             self.logger.error(f"Failed to parse JSON message: {e}")
             self.logger.error(f"Raw message was: {message}")
+# Register TutorView with proxy after class is fully defined
+from .tutor_proxy import TutorViewProxy
+TutorViewProxy.get_instance().register_view_class(TutorView)

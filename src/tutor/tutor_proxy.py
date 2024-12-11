@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, Type
 from PyQt5.QtCore import QObject
-from .tutor import TutorView
+from PyQt5.QtWidgets import QWidget
 from core.models import BaseLesson
 
 class TutorViewProxy(QObject):
@@ -11,7 +11,8 @@ class TutorViewProxy(QObject):
     
     def __init__(self):
         super().__init__()
-        self._active_view: Optional[TutorView] = None
+        self._active_view: Optional[QWidget] = None
+        self._view_class: Optional[Type[QWidget]] = None
     
     @classmethod
     def get_instance(cls) -> 'TutorViewProxy':
@@ -20,7 +21,11 @@ class TutorViewProxy(QObject):
             cls._instance = cls()
         return cls._instance
     
-    def open_tutor(self, unit: BaseLesson) -> TutorView:
+    def register_view_class(self, view_class: Type[QWidget]) -> None:
+        """Register the TutorView class to avoid circular imports"""
+        self._view_class = view_class
+
+    def open_tutor(self, unit: BaseLesson) -> QWidget:
         """
         Open a tutor view for the given unit.
         If a view already exists, it will be brought to front.
@@ -35,8 +40,15 @@ class TutorViewProxy(QObject):
 
         
         # Create new view
-        self._active_view = TutorView(unit)
+        if not self._view_class:
+            raise RuntimeError("TutorView class not registered")
+            
+        self._active_view = self._view_class(unit)
         self._active_view.show()
+        
+        # Connect close event
+        self._active_view.destroyed.connect(lambda: self.remove_tutor(unit))
+        
         return self._active_view
 
     def remove_tutor(self, unit: BaseLesson) -> None:
