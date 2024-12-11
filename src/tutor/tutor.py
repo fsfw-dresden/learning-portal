@@ -346,6 +346,12 @@ class TutorView(QWidget):
             action.setChecked(self.mode == mode and (mode == ViewMode.FREE or self.position == position))
             action.triggered.connect(lambda checked, m=mode, p=position: self.change_dock_mode(m, p))
             menu.addAction(action)
+
+        menu.addSeparator()
+        
+        close_action = QAction(QIcon.fromTheme("window-close"), tr("Close"), self)
+        close_action.triggered.connect(self.close)
+        menu.addAction(close_action)
         
         menu.exec_(global_pos)
     
