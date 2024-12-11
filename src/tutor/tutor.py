@@ -39,7 +39,6 @@ class TutorView(QWidget):
         """Get or create the singleton instance"""
         if cls._instance is not None:
             cls._instance.close()
-            cls._instance.deleteLater()
             cls._instance = None
         instance = cls(unit)
         cls._instance = instance
