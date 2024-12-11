@@ -26,7 +26,7 @@ class TutorViewProxy(QObject):
         Open a tutor view for the given unit.
         If a view already exists for this unit, it will be brought to front.
         """
-        unit_id = str(unit.id)
+        unit_id = str(unit.tutorial_url)
         
         # Close existing view if present
         if unit_id in self._active_views:
