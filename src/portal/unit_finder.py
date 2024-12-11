@@ -1,7 +1,10 @@
+from typing import List
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLineEdit,
                             QScrollArea, QWidget, QGridLayout)
 from PyQt5.QtCore import Qt, QTimer
+from core.models import BaseLesson, LessonMetadata
 from core.unit_scanner import UnitScanner
+from portal.simple_unit_card import SimpleUnitCard
 from portal.unit_card import UnitCard
 
 class UnitFinderWidget(QWidget):
@@ -64,7 +67,7 @@ class UnitFinderWidget(QWidget):
         units = self.scanner.list_all_lessons()
         self.display_units(units)
         
-    def display_units(self, units):
+    def display_units(self, units: List[BaseLesson]):
         """Clear and redisplay unit cards"""
         # Clear existing cards
         while self.cards_layout.count():
@@ -76,5 +79,5 @@ class UnitFinderWidget(QWidget):
         for i, unit in enumerate(units):
             row = i // 3  # 3 cards per row
             col = i % 3
-            card = UnitCard(unit)
+            card = UnitCard(unit) if isinstance(unit, LessonMetadata) else SimpleUnitCard(unit)
             self.cards_layout.addWidget(card, row, col)

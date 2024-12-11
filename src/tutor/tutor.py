@@ -11,7 +11,7 @@ import json
 import subprocess
 from pathlib import Path
 from typing import Optional, Tuple
-from core.models import ViewMode, DockPosition, ScreenHint, UnitMetadata
+from core.models import BaseLesson, LessonMetadata, ViewMode, DockPosition, ScreenHint
 from core.preferences import Preferences
 from core.launcher import ProgramLauncher
 
@@ -32,10 +32,14 @@ class CollapseIcons:
     RIGHT = ("▶", "◀")
 
 class TutorView(QWidget):
-    def __init__(self, unit: UnitMetadata):
+    def __init__(self, unit: BaseLesson):
         super().__init__()
         self.unit = unit
-        self.screen_hint = unit.screen_hint or ScreenHint(position=DockPosition.RIGHT, mode=ViewMode.DOCKED)
+        if isinstance(unit, LessonMetadata) and  unit.screen_hint != None:
+            self.screen_hint = unit.screen_hint
+        else:
+            self.screen_hint = ScreenHint(position=DockPosition.RIGHT, mode=ViewMode.DOCKED)
+        
         self.logger = logging.getLogger(__name__)
         self.current_url = None
         self.is_expanded = True
@@ -183,7 +187,7 @@ class TutorView(QWidget):
         self.apply_screen_hints()
         
         # Launch associated program if specified
-        if self.unit.program_launch_info:
+        if isinstance(self.unit, LessonMetadata) and self.unit.program_launch_info:
             self.program_process = ProgramLauncher.launch_program(self.unit)
 
     def setup_toggle_button(self):

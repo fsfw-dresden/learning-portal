@@ -122,8 +122,9 @@ class UnitScanner:
             else:
                 # Create simple lesson from markdown file
                 logger.info(f"Creating simple lesson from {content_path}")
+                dir_path = Path(lesson_dir)
                 return SimpleLesson(
-                    title=Path(lesson_dir).name,
+                    title= dir_path.parent.name + " - " + dir_path.name,
                     content_path=content_path.as_posix(),
                     lesson_path=lesson_dir.as_posix()
                 )

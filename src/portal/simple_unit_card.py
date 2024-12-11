@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLabel, 
                             QFrame, QSizePolicy)
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from core.models import SimpleLesson
 from tutor.tutor import TutorView
+from portal.tr import tr
 
 class SimpleUnitCard(QFrame):
     def __init__(self, unit: SimpleLesson, parent=None):
@@ -39,9 +41,9 @@ class SimpleUnitCard(QFrame):
         layout = QVBoxLayout(self)
         
         # Simple icon or placeholder
-        icon_label = QLabel("📄")  # Document emoji as placeholder
+        icon_label = QLabel()
+        icon_label.setPixmap(QIcon.fromTheme("text-x-generic").pixmap(128, 128))
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setStyleSheet("font-size: 48px;")
         layout.addWidget(icon_label)
         
         # Title
@@ -51,7 +53,7 @@ class SimpleUnitCard(QFrame):
         layout.addWidget(title)
         
         # Info about simple lesson
-        info = QLabel("Simple Markdown Lesson")
+        info = QLabel(tr("No Metadata"))
         info.setObjectName("info")
         info.setAlignment(Qt.AlignCenter)
         layout.addWidget(info)

@@ -1,10 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt5.QtCore import Qt
+from portal.tr import tr
 
-def tr(text: str) -> str:
-    """Helper function for translations"""
-    from PyQt5.QtWidgets import QApplication
-    return QApplication.translate("Portal", text)
 
 class ContentWidget(QWidget):
     def __init__(self):
