@@ -14,7 +14,6 @@ from typing import Optional, Tuple
 from core.models import BaseLesson, LessonMetadata, ViewMode, DockPosition, ScreenHint
 from core.preferences import Preferences
 from core.launcher import ProgramLauncher
-from tutor.tutor_proxy import TutorViewProxy
 
 # Translation context for all tutor pages
 TRANSLATION_CONTEXT = "TutorView"
@@ -34,7 +33,7 @@ class CollapseIcons:
 
 class TutorView(QWidget):
     
-    def __init__(self, unit: BaseLesson):
+    def __init__(self, unit: BaseLesson, disable_program: bool = False):
         super().__init__()
         self.unit = unit
         if isinstance(unit, LessonMetadata) and  unit.screen_hint != None:
@@ -189,7 +188,7 @@ class TutorView(QWidget):
         self.apply_screen_hints()
         
         # Launch associated program if specified
-        if isinstance(self.unit, LessonMetadata) and self.unit.program_launch_info:
+        if isinstance(self.unit, LessonMetadata) and self.unit.program_launch_info and not disable_program:
             self.program_process = ProgramLauncher.launch_program(self.unit)
 
     def setup_toggle_button(self):
@@ -319,8 +318,12 @@ class TutorView(QWidget):
 
     def closeEvent(self, event):
         """Handle window close event"""
-        if hasattr(self, 'program_process') and self.program_process:
-            self.program_process.terminate()
+        #if hasattr(self, 'program_process') and self.program_process:
+        #    self.program_process.terminate()
+        # Remove from proxy's active view
+        from .tutor_proxy import TutorViewProxy
+        proxy = TutorViewProxy.get_instance()
+        proxy.remove_tutor(self.unit)
         super().closeEvent(event)
 
     def show_context_menu(self, pos):
@@ -378,7 +381,8 @@ class TutorView(QWidget):
         )
         
         # Create new window with the modified unit using singleton pattern
-        new_window = TutorViewProxy.get_instance().open_tutor(modified_unit)
+        from .tutor_proxy import TutorViewProxy
+        new_window = TutorViewProxy.get_instance().open_tutor(modified_unit, force_new=True, disable_program=True)
         
         # Load the current URL if it exists
         if self.current_url:
@@ -445,6 +449,3 @@ class TutorView(QWidget):
         except json.JSONDecodeError as e:
             self.logger.error(f"Failed to parse JSON message: {e}")
             self.logger.error(f"Raw message was: {message}")
-# Register TutorView with proxy after class is fully defined
-from .tutor_proxy import TutorViewProxy
-TutorViewProxy.get_instance().register_view_class(TutorView)

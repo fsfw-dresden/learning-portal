@@ -1,6 +1,7 @@
-from typing import Optional, Type
+from typing import Optional
+from venv import logger
 from PyQt5.QtCore import QObject
-from PyQt5.QtWidgets import QWidget
+from .tutor import TutorView
 from core.models import BaseLesson
 
 class TutorViewProxy(QObject):
@@ -11,8 +12,7 @@ class TutorViewProxy(QObject):
     
     def __init__(self):
         super().__init__()
-        self._active_view: Optional[QWidget] = None
-        self._view_class: Optional[Type[QWidget]] = None
+        self._active_view: Optional[TutorView] = None
     
     @classmethod
     def get_instance(cls) -> 'TutorViewProxy':
@@ -21,34 +21,25 @@ class TutorViewProxy(QObject):
             cls._instance = cls()
         return cls._instance
     
-    def register_view_class(self, view_class: Type[QWidget]) -> None:
-        """Register the TutorView class to avoid circular imports"""
-        self._view_class = view_class
-
-    def open_tutor(self, unit: BaseLesson) -> QWidget:
+    def open_tutor(self, unit: BaseLesson, force_new: bool = False, disable_program: bool = False) -> TutorView:
         """
         Open a tutor view for the given unit.
         If a view already exists, it will be brought to front.
         """
 
-        if self._active_view and self._active_view.unit == unit:
+        if self._active_view and self._active_view.unit == unit and not force_new:
             self._active_view.show()
             return self._active_view
+
 
         if self._active_view:
             self.close_tutor()
 
+
         
         # Create new view
-        if not self._view_class:
-            raise RuntimeError("TutorView class not registered")
-            
-        self._active_view = self._view_class(unit)
+        self._active_view = TutorView(unit, disable_program=disable_program)
         self._active_view.show()
-        
-        # Connect close event
-        self._active_view.destroyed.connect(lambda: self.remove_tutor(unit))
-        
         return self._active_view
 
     def remove_tutor(self, unit: BaseLesson) -> None:
