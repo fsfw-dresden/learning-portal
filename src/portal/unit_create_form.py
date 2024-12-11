@@ -20,8 +20,8 @@ class UnitCreateForm(QDialog):
         self.course_input = QComboBox()
         self.course_input.setEditable(True)
         self.course_input.setInsertPolicy(QComboBox.InsertPolicy.InsertAlphabetically)
-        # Get existing course names
-        existing_courses = set(course.name for course in self.scanner.courses)
+        # Get existing course titles
+        existing_courses = set(course.title for course in self.scanner.courses)
         self.course_input.addItems(sorted(existing_courses))
         form_layout.addRow(tr("Course Name:"), self.course_input)
         
