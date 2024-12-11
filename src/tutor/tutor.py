@@ -32,17 +32,6 @@ class CollapseIcons:
     RIGHT = ("▶", "◀")
 
 class TutorView(QWidget):
-    _instance = None
-    
-    @classmethod
-    def get_instance(cls, unit: BaseLesson) -> 'TutorView':
-        """Get or create the singleton instance"""
-        if cls._instance is not None:
-            cls._instance.close()
-            cls._instance = None
-        instance = cls(unit)
-        cls._instance = instance
-        return instance
     
     def __init__(self, unit: BaseLesson):
         super().__init__()
