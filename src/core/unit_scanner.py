@@ -96,11 +96,13 @@ class UnitScanner:
     def _load_lesson(self, lesson_dir: Path) -> Optional[BaseLesson]:
         """Load a lesson from a directory"""
         try:
-            lesson_yml = lesson_dir / "lesson.yml"
             content_path = self._find_content_file(lesson_dir)
             if not content_path:
                 return None
 
+            lesson_yml = lesson_dir / "lesson.yml"
+            if not lesson_yml.exists():
+                lesson_yml = lesson_dir / "metadata.yml"
                 
             if lesson_yml.exists():
                 logger.info(f"Loading lesson metadata from {lesson_yml}")
