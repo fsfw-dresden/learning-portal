@@ -316,6 +316,19 @@ class TutorView(QWidget):
             # Draw semi-transparent background
             painter.fillRect(self.rect(), QColor(40, 40, 40, 200))
 
+    def closeEvent(self, event):
+        """Handle window close event"""
+        if hasattr(self, 'program_process') and self.program_process:
+            self.program_process.terminate()
+        # Remove from proxy's active views
+        from .tutor_proxy import TutorViewProxy
+        proxy = TutorViewProxy.get_instance()
+        for unit_id, view in list(proxy._active_views.items()):
+            if view == self:
+                proxy.close_tutor(unit_id)
+                break
+        super().closeEvent(event)
+
     def show_context_menu(self, pos):
         """Show the context menu for dock mode selection"""
         # Convert position to global coordinates for proper menu placement
