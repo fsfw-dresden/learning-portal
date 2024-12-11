@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Learning Portal
+Comment=Educational portal for students
+Exec=/usr/bin/portal-wrapper.sh
+Icon=/usr/share/learning-portal/learning-portal-logo.png
+Terminal=false
+Categories=Education;
+Keywords=education;learning;portal;
