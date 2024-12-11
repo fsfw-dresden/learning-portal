@@ -1,0 +1,3 @@
+[submodule "OER-materials/examples/schulstick-tutorial-docs"]
+	path = OER-materials/examples/schulstick-tutorial-docs
+	url = https://github.com/fsfw-dresden/schulstick-tutorial-docs.git
