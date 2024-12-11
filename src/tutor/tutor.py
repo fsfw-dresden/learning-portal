@@ -320,13 +320,10 @@ class TutorView(QWidget):
         """Handle window close event"""
         if hasattr(self, 'program_process') and self.program_process:
             self.program_process.terminate()
-        # Remove from proxy's active views
+        # Remove from proxy's active view
         from .tutor_proxy import TutorViewProxy
         proxy = TutorViewProxy.get_instance()
-        for unit_id, view in list(proxy._active_views.items()):
-            if view == self:
-                proxy.close_tutor(unit_id)
-                break
+        proxy.close_tutor()
         super().closeEvent(event)
 
     def show_context_menu(self, pos):
