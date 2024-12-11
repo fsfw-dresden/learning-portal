@@ -42,16 +42,23 @@ class BaseLesson:
         if not self.content_path:
             return None
         return Path(self.content_path)
+
+    @property
+    def relative_markdown_path(self) -> Optional[str]:
+        if not self.content_path:
+            return None
+        config = PortalConfig.load()
+        scan_path = config.get_scan_path()
+        relative_path = Path(self.content_path).relative_to(scan_path)
+        return relative_path.as_posix()
     
     @property
     def tutorial_url(self) -> Optional[str]:
         if not self.content_path:
             return None
         config = PortalConfig.load()
-        scan_path = config.get_scan_path()
-        relative_path = Path(self.content_path).relative_to(scan_path)
         liascript_url = f"{config.liascript_devserver}{config.liascript_html_path}?{config.liascript_devserver}/"
-        return f"{liascript_url}{relative_path.as_posix()}"
+        return f"{liascript_url}{self.relative_markdown_path}"
     
     def validate(self) -> bool:
         if not self.content_path:
