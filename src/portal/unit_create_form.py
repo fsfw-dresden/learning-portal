@@ -1,6 +1,7 @@
 import os
 import subprocess
 from pathlib import Path
+from venv import logger
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QLabel, QLineEdit,
                             QComboBox, QPushButton, QFormLayout, QMessageBox)
 from PyQt5.QtCore import Qt
@@ -63,10 +64,13 @@ class UnitCreateForm(QDialog):
         base_path = config.get_scan_path()
         if isinstance(base_path, list):
             base_path = base_path[0]  # Use first path if multiple
-            
-        course_path = base_path / course_dir
+        
+        course_collection_path = base_path / "drafts"
+        course_path = course_collection_path / course_dir
         lesson_path = course_path / lesson_dir
         markdown_file = lesson_path / "README.md"
+
+        logger.info(f"Creating lesson at {lesson_path}")
         
         # Check if lesson already exists
         if lesson_path.exists():
@@ -124,6 +128,6 @@ Welcome to this new lesson!
     def _open_in_editor(self, markdown_file: Path):
         """Open the markdown file in the configured editor"""
         config = PortalConfig.load()
-        url = f"{config.liascript_editor_url}{config.liascript_editor_proxy_static_url}{markdown_file.relative_to(config.get_scan_path()[0])}"
+        url = f"{config.liascript_editor_url}{config.liascript_editor_proxy_static_url}{markdown_file.relative_to(config.get_scan_path())}"
         command = f"{config.liascript_editor_open_command}{url}"
         subprocess.Popen(command, shell=True)

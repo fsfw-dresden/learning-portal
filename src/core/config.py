@@ -15,7 +15,7 @@ class PortalConfig(YAMLWizard):
     liascript_html_path: str = "/liascript/index.html"
     liascript_editor_url: str = "http://localhost:4321/?/tutor/"
     liascript_editor_proxy_static_url: str = "http://localhost:9000/static/"
-    liascript_editor_open_command: str = "chromium --user-data-dir=~/.local/share/learning-platform/chromium-profile --app="
+    liascript_editor_open_command: str = "chromium --user-data-dir=$HOME/.local/share/learning-platform/chromium-profile --app="
 
     @classmethod
     def load(cls) -> 'PortalConfig':
