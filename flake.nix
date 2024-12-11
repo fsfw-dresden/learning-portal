@@ -127,7 +127,7 @@
             alias icon-finder="python -m helper.icon_finder"
             alias portal="python -m portal.main"
             alias tutor="python -m tutor.main"
-            alias devserver="npx @liascript/devserver --live --input ./OER-materials"
+            alias devserver="npx @liascript/devserver --live --input ./OER-materials"  ## broken. might want use: "node dist/index.js -i ../schulstick-portal/OER-materials/"
             
             echo "Development shell aliases available:"
             echo "  vision-assistant - Run the vision assistant"
