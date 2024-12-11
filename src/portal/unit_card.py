@@ -5,6 +5,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 from core.models import LessonMetadata
 from tutor.tutor import TutorView
 from tutor.tutor_proxy import TutorViewProxy
+from portal.unit_context_menu import UnitContextMenu
 
 class UnitCard(QFrame):
     def __init__(self, unit: LessonMetadata, parent=None):
@@ -92,3 +93,6 @@ class UnitCard(QFrame):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             TutorViewProxy.get_instance().open_tutor(self.unit)
+        elif event.button() == Qt.RightButton:
+            context_menu = UnitContextMenu(self.unit, self)
+            context_menu.exec_(event.globalPos())

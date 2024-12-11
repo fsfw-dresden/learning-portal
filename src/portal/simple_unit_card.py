@@ -6,6 +6,7 @@ from core.models import SimpleLesson
 from tutor.tutor import TutorView
 from portal.tr import tr
 from tutor.tutor_proxy import TutorViewProxy
+from portal.unit_context_menu import UnitContextMenu
 
 class SimpleUnitCard(QFrame):
     def __init__(self, unit: SimpleLesson, parent=None):
@@ -65,3 +66,6 @@ class SimpleUnitCard(QFrame):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             TutorViewProxy.get_instance().open_tutor(self.unit)
+        elif event.button() == Qt.RightButton:
+            context_menu = UnitContextMenu(self.unit, self)
+            context_menu.exec_(event.globalPos())
