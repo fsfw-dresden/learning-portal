@@ -14,6 +14,7 @@ from typing import Optional, Tuple
 from core.models import BaseLesson, LessonMetadata, ViewMode, DockPosition, ScreenHint
 from core.preferences import Preferences
 from core.launcher import ProgramLauncher
+from tutor.tutor_proxy import TutorViewProxy
 
 # Translation context for all tutor pages
 TRANSLATION_CONTEXT = "TutorView"
@@ -381,7 +382,7 @@ class TutorView(QWidget):
         )
         
         # Create new window with the modified unit using singleton pattern
-        new_window = TutorView.get_instance(modified_unit)
+        new_window = TutorViewProxy.get_instance().open_tutor(modified_unit)
         
         # Load the current URL if it exists
         if self.current_url:
