@@ -18,8 +18,5 @@ class UnitContextMenu(QMenu):
         editor_action.triggered.connect(self.open_in_editor)
         
     def open_in_editor(self):
-        url = f"{self.config.liascript_editor_url}{self.config.liascript_editor_proxy_static_url}{self.unit.relative_markdown_path}"
-        logger.info(f"Opening {url} in editor")
-        logger.info(f"Command: {self.config.liascript_editor_open_command}{url}")
-        command = f"{self.config.liascript_editor_open_command}{url}"
+        command = self.config.liascript_editor_open_command.replace("%f", str(self.unit.relative_markdown_path))
         subprocess.Popen(command, shell=True)
