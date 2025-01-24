@@ -1,4 +1,4 @@
-schulstick (0.1.4) UNRELEASED; urgency=medium
+schulstick (0.1.5) UNRELEASED; urgency=medium
 
   * Major improvements to unit scanner and lesson loading:
     - Added SimpleUnitCard for displaying simple markdown lessons
@@ -19,7 +19,7 @@ schulstick (0.1.4) UNRELEASED; urgency=medium
     - Updated class and method names in unit_card.py and unit_finder.py
     - Improved lesson loading and validation
 
- -- Schulstick Team <info@schulstick.org>  Wed, 11 Dec 2024 03:24:27 +0100
+ -- Schulstick Team <info@schulstick.org>  Wed, 11 Dec 2024 21:13:53 +0100
 
 schulstick (0.1.2) unstable; urgency=medium
 

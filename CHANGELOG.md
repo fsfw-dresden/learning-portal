@@ -1,3 +1,26 @@
+# 0.1.5 (2024-12-11)
+
+## Summary
+
+This changelog covers a range of improvements to the portal, including the ability to reload the units collection, create new lessons with a markdown template, and open unit lessons in the LiaScript editor. Several bug fixes and enhancements to the user interface have also been made.
+
+## Features
+
+- Added a "Reload" button to the portal toolbar to rescan the units collection
+- Implemented lesson creation with a directory and markdown template generation
+- Added a "Plus" button to the toolbar with a unit creation form
+- Introduced LiaScript editor URL and open command configuration options
+- Added a context menu with an "Open in Editor" option for unit cards
+
+## Fixes
+
+- Replaced `course.name` with `course.title` in the `UnitCreateForm`
+- Various small fixes
+
+## Other Changes
+
+- None
+
 # 0.1.4 (2024-12-11)
 
 ## Summary
