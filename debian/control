@@ -23,6 +23,7 @@ Depends: ${python3:Depends},
          python3-pillow,
          python3-platformdirs,
          python3-pip,
+         python3-typing-extensions (>= 4.7.0),
          nodejs
 Description: Educational portal app for IT competency development
  An interactive educational portal integrated into the Schulstick platform,

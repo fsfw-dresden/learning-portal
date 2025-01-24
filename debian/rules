@@ -34,7 +34,7 @@ override_dh_auto_test:
 override_dh_auto_install:
 	dh_auto_install
 	# Install pip dependencies
-	PYTHONPATH=debian/schulstick/usr/lib/python3/dist-packages pip3 install --target=debian/schulstick/usr/lib/python3/dist-packages dataclass-wizard --no-deps
+	PYTHONPATH=debian/schulstick/usr/lib/python3/dist-packages pip3 install --target=debian/schulstick/usr/lib/python3/dist-packages "dataclass-wizard[all]>=0.22.0" typing-extensions>=4.7.0
 	# Install markdown tutorials
 	mkdir -p debian/schulstick/usr/share/learning-portal/courses/examples/
 	cp -r OER-materials/examples debian/schulstick/usr/share/learning-portal/courses/
