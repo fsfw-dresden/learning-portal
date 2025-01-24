@@ -2,6 +2,5 @@
 unit_root_path: .local/share/learning-portal/courses/
 liascript_devserver: http://localhost:3000
 liascript_html_path: /liascript/index.html
-liascript_editor_url: http://localhost:4321/?/tutor/
-liascript_editor_open_command: chromium --user-data-dir=$HOME/.local/share/learning-platform/chromium-profile --app=
-liascript_editor_proxy_static_url: http://localhost:9000/static/
+liascript_editor_url: http://localhost:9000/?/tutor/
+liascript_editor_open_command: /usr/bin/liascript-editor-wrapper.sh %f

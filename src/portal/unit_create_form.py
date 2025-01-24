@@ -128,6 +128,6 @@ Welcome to this new lesson!
     def _open_in_editor(self, markdown_file: Path):
         """Open the markdown file in the configured editor"""
         config = PortalConfig.load()
-        url = f"{config.liascript_editor_url}{config.liascript_editor_proxy_static_url}{markdown_file.relative_to(config.get_scan_path())}"
-        command = f"{config.liascript_editor_open_command}{url}"
+        url = markdown_file.relative_to(config.get_scan_path())
+        command = config.liascript_editor_open_command.replace("%f", str(url))
         subprocess.Popen(command, shell=True)
