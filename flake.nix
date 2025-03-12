@@ -2,7 +2,7 @@
   description = "Open Educational Portal App for IT competency development integrated with Schulstick";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
   outputs = { self, nixpkgs, flake-utils }:
@@ -19,6 +19,7 @@
           setuptools  # Provides pkg_resources
           requests
           pyyaml
+          pyxdg
           toml
           fuzzywuzzy
           python-Levenshtein
