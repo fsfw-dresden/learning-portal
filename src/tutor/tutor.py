@@ -318,6 +318,11 @@ class TutorView(QWidget):
 
     def closeEvent(self, event):
         """Handle window close event"""
+        # Clean up web view resources
+        if hasattr(self, 'web_view'):
+            self.web_view.page().deleteLater()
+            self.web_view.deleteLater()
+            
         #if hasattr(self, 'program_process') and self.program_process:
         #    self.program_process.terminate()
         # Remove from proxy's active view
@@ -380,16 +385,21 @@ class TutorView(QWidget):
             preferred_height=self.screen_hint.preferred_height
         )
         
+        current_url = self.current_url
+        
         # Create new window with the modified unit using singleton pattern
         from .tutor_proxy import TutorViewProxy
         new_window = TutorViewProxy.get_instance().open_tutor(modified_unit, force_new=True, disable_program=True)
         
-        # Load the current URL if it exists
-        if self.current_url:
-            new_window.web_view.setUrl(self.current_url)
+        if current_url:
+            new_window.web_view.setUrl(current_url)
             
         new_window.show()
         
+        if hasattr(self, 'web_view'):
+            self.web_view.page().deleteLater()
+            self.web_view.deleteLater()
+            
         # Close this window
         self.close()
 
