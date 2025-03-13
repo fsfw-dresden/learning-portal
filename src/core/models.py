@@ -117,3 +117,13 @@ class Course(YAMLWizard):
 
 # Keeping UnitMetadata for backwards compatibility
 UnitMetadata = LessonMetadata
+
+
+@dataclass
+class CourseCollection:
+    """Collection of courses"""
+    title: str
+    unique_collection_name: str
+    collection_path: Path
+    collection_remote_url: Optional[str] = None
+    writable: bool = False

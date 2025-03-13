@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 import logging
 from fuzzywuzzy import fuzz
-from core.models import Course, LessonMetadata, SimpleLesson, BaseLesson
+from core.models import Course, CourseCollection, LessonMetadata, SimpleLesson, BaseLesson
 from core.config import PortalConfig
 from core.env_helper import EnvHelper
 
@@ -13,6 +13,7 @@ class UnitScanner:
     def __init__(self):
         self.config = PortalConfig.load()
         self.courses: List[Course] = []
+        self.collections: List[CourseCollection] = []
         self._scan_courses()
     
     def _scan_courses(self) -> None:
@@ -28,15 +29,18 @@ class UnitScanner:
                 continue
                 
             collection_name = collection_dir.name
-            if collection_name in ['examples', 'draft', 'private', 'unpublished']:
-                # Handle special collections
-                self._scan_collection(collection_dir, collection_name)
-            else:
-                # Regular course collection
-                self._scan_collection(collection_dir, collection_name)
+            self._scan_collection(collection_dir, collection_name)
 
     def _scan_collection(self, collection_path: Path, collection_name: str) -> None:
         """Scan a course collection directory"""
+        writable = True if collection_name in ['draft', 'private', 'unpublished'] else False
+        collection = CourseCollection(
+            title=collection_name,
+            unique_collection_name=collection_name,
+            collection_path=collection_path,
+            writable=writable
+        )
+        self.collections.append(collection)
         for course_dir in collection_path.iterdir():
             if not course_dir.is_dir():
                 continue
@@ -159,6 +163,14 @@ class UnitScanner:
     def list_all_courses(self) -> List[Course]:
         """Return all courses"""
         return self.courses
+
+    def list_all_collections(self) -> List[CourseCollection]:
+        """Return all collections"""
+        return self.collections
+
+    def filter_course_by_collection(self, collection_name: str) -> List[Course]:
+        """Filter courses by collection name"""
+        return [course for course in self.courses if course.collection_name == collection_name]
     
     def filter_by_subject(self, subject: str) -> List[BaseLesson]:
         """Filter lessons by subject (only works for LessonMetadata)"""
