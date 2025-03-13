@@ -6,8 +6,9 @@ from core.models import BaseLesson, LessonMetadata
 from core.unit_scanner import UnitScanner
 from portal.simple_unit_card import SimpleUnitCard
 from portal.unit_card import UnitCard
+from portal.abstract_unit_course_view import AbstractUnitCourseView
 
-class UnitFinderWidget(QWidget):
+class UnitFinderWidget(AbstractUnitCourseView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.scanner = UnitScanner()
@@ -82,3 +83,7 @@ class UnitFinderWidget(QWidget):
             col = i % 3
             card = UnitCard(unit) if isinstance(unit, LessonMetadata) else SimpleUnitCard(unit)
             self.cards_layout.addWidget(card, row, col)
+
+    def reload(self):
+        """Implement the abstract reload method"""
+        self.load_units()
