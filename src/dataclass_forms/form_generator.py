@@ -195,7 +195,6 @@ class DataclassFormGenerator:
     @staticmethod
     def _create_widget_for_type(field_type, field_obj, parent):
         """Create an appropriate widget based on the field type."""
-        default_value = field_obj.default
         origin = get_origin(field_type)
         args = get_args(field_type)
         
@@ -203,13 +202,42 @@ class DataclassFormGenerator:
         if origin is Union and type(None) in args:
             # Get the non-None type
             real_type = next(arg for arg in args if arg is not type(None))
-            return DataclassFormGenerator._create_widget_for_type(real_type, default_value, parent)
+            # Pass the same field_obj, not just its default value
+            return DataclassFormGenerator._create_widget_for_type(real_type, field_obj, parent)
+        
+        # Get default value after handling Optional types
+        default_value = field_obj.default if hasattr(field_obj, 'default') else None
         
         # Handle basic types
         if field_type == str:
-            widget = QLineEdit(parent)
-            if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
-                widget.setText(str(default_value))
+            # Check if this should be a multiline text field
+            multiline = False
+            if hasattr(field_obj, 'metadata') and 'form_field' in field_obj.metadata:
+                form_field = field_obj.metadata['form_field']
+                if 'multiline' in form_field and form_field['multiline']:
+                    multiline = True
+                    
+            if multiline:
+                widget = QTextEdit(parent)
+                if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
+                    widget.setPlainText(str(default_value))
+                
+                # Set placeholder text if provided
+                if hasattr(field_obj, 'metadata') and 'form_field' in field_obj.metadata:
+                    form_field = field_obj.metadata['form_field']
+                    if 'placeholder' in form_field and form_field['placeholder']:
+                        widget.setPlaceholderText(form_field['placeholder'])
+            else:
+                widget = QLineEdit(parent)
+                if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
+                    widget.setText(str(default_value))
+                
+                # Set placeholder text if provided
+                if hasattr(field_obj, 'metadata') and 'form_field' in field_obj.metadata:
+                    form_field = field_obj.metadata['form_field']
+                    if 'placeholder' in form_field and form_field['placeholder']:
+                        widget.setPlaceholderText(form_field['placeholder'])
+            
             return widget
         
         elif field_type == int:
