@@ -3,6 +3,7 @@ Demo application for the dataclass forms module.
 """
 
 import sys
+import logging
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -115,6 +116,15 @@ class DemoApp(QWidget):
 
 
 def main():
+    # Configure logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger('dataclass_forms')
+    logger.setLevel(logging.DEBUG)
+    
+    # Create and show the application
     app = QApplication(sys.argv)
     window = DemoApp()
     window.show()

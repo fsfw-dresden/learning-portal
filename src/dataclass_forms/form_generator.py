@@ -3,9 +3,13 @@ Form generator for dataclasses.
 """
 
 import inspect
+import logging
 import typing
 import dataclasses
 from dataclasses import dataclass, field, fields, is_dataclass, MISSING
+
+# Set up logging
+logger = logging.getLogger(__name__)
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints, get_origin, get_args
 
 # Field metadata for form generation
@@ -167,11 +171,16 @@ class DataclassFormGenerator:
             if field_name.startswith('_'):
                 continue
             
+            # Log field information
+            logger.debug(f"Processing field: {field_name}, type: {field_type}")
+            logger.debug(f"Field default: {f.default}")
+            logger.debug(f"Field metadata: {f.metadata if hasattr(f, 'metadata') else 'No metadata'}")
+            
             # Create label with field name
             label = QLabel(field_name.replace('_', ' ').title())
             
             # Create appropriate widget based on field type
-            widget = DataclassFormGenerator._create_widget_for_type(field_type, f.default, form)
+            widget = DataclassFormGenerator._create_widget_for_type(field_type, f, form)
             
             # Add to form
             form._layout.addRow(label, widget)
@@ -184,8 +193,9 @@ class DataclassFormGenerator:
         return form
     
     @staticmethod
-    def _create_widget_for_type(field_type, default_value, parent):
+    def _create_widget_for_type(field_type, field_obj, parent):
         """Create an appropriate widget based on the field type."""
+        default_value = field_obj.default
         origin = get_origin(field_type)
         args = get_args(field_type)
         
@@ -210,13 +220,23 @@ class DataclassFormGenerator:
             max_value = 1000000
             
             # Check for metadata with min/max constraints
-            if hasattr(default_value, 'metadata') and 'form_field' in default_value.metadata:
-                form_field = default_value.metadata['form_field']
+            logger.debug(f"Field type: {field_type}, Default value: {default_value}")
+            logger.debug(f"Field object: {field_obj}")
+            logger.debug(f"Has metadata: {hasattr(field_obj, 'metadata')}")
+            
+            if hasattr(field_obj, 'metadata') and 'form_field' in field_obj.metadata:
+                form_field = field_obj.metadata['form_field']
+                logger.debug(f"Form field metadata: {form_field}")
+                
                 if 'min' in form_field and form_field['min'] is not None:
                     min_value = form_field['min']
+                    logger.debug(f"Setting min value to {min_value}")
+                    
                 if 'max' in form_field and form_field['max'] is not None:
                     max_value = form_field['max']
+                    logger.debug(f"Setting max value to {max_value}")
             
+            logger.info(f"Setting range for {field_type} field: min={min_value}, max={max_value}")
             widget.setRange(min_value, max_value)
             
             # Set default value if provided
@@ -236,13 +256,23 @@ class DataclassFormGenerator:
             max_value = 1000000
             
             # Check for metadata with min/max constraints
-            if hasattr(default_value, 'metadata') and 'form_field' in default_value.metadata:
-                form_field = default_value.metadata['form_field']
+            logger.debug(f"Float field type: {field_type}, Default value: {default_value}")
+            logger.debug(f"Field object: {field_obj}")
+            logger.debug(f"Has metadata: {hasattr(field_obj, 'metadata')}")
+            
+            if hasattr(field_obj, 'metadata') and 'form_field' in field_obj.metadata:
+                form_field = field_obj.metadata['form_field']
+                logger.debug(f"Form field metadata: {form_field}")
+                
                 if 'min' in form_field and form_field['min'] is not None:
                     min_value = form_field['min']
+                    logger.debug(f"Setting min value to {min_value}")
+                    
                 if 'max' in form_field and form_field['max'] is not None:
                     max_value = form_field['max']
+                    logger.debug(f"Setting max value to {max_value}")
             
+            logger.info(f"Setting range for {field_type} field: min={min_value}, max={max_value}")
             widget.setRange(min_value, max_value)
             widget.setDecimals(2)
             
