@@ -1,9 +1,11 @@
 from PyQt5.QtWidgets import (QVBoxLayout, QLabel, 
-                            QHBoxLayout, QFrame, QSizePolicy, QApplication)
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QPixmap, QFont, QPalette
+                            QHBoxLayout, QFrame, QSizePolicy, QApplication,
+                            QPushButton)
+from PyQt5.QtCore import Qt, pyqtSignal, QSize
+from PyQt5.QtGui import QPixmap, QFont, QPalette, QIcon
 from core.models import BaseLesson, Lesson
 from portal.horizontal_star_rating import HorizontalStarRating
+from tutor.tutor_proxy import TutorViewProxy
 
 class UnitCard(QFrame):
     """
@@ -11,6 +13,7 @@ class UnitCard(QFrame):
     and preview image if available.
     """
     clicked = pyqtSignal(object)
+    play_clicked = pyqtSignal(object)  # New signal for play button clicks
     
     def __init__(self, lesson: BaseLesson, parent=None):
         super().__init__(parent)
@@ -65,6 +68,14 @@ class UnitCard(QFrame):
         # Check if lesson has metadata
         has_metadata = isinstance(self.lesson, Lesson) and self.lesson.metadata is not None
         
+        # Create a container for the image and play button overlay
+        image_container = QFrame()
+        image_container.setMinimumHeight(80)
+        image_container.setMaximumHeight(100)
+        image_container_layout = QVBoxLayout(image_container)
+        image_container_layout.setContentsMargins(0, 0, 0, 0)
+        image_container_layout.setSpacing(0)  # Remove spacing
+        
         # Lesson image (if available)
         self.image_label = QLabel()
         self.image_label.setMinimumHeight(80)
@@ -86,7 +97,56 @@ class UnitCard(QFrame):
                     Qt.SmoothTransformation
                 ))
         
-        layout.addWidget(self.image_label)
+        # Create play button overlay
+        self.play_button = QPushButton()
+        self.play_button.setIcon(QIcon.fromTheme("media-playback-start"))
+        self.play_button.setIconSize(QSize(32, 32))
+        self.play_button.setCursor(Qt.PointingHandCursor)
+        
+        # Style the play button to be semi-transparent and centered
+        highlight_color = palette.color(QPalette.Highlight)
+        self.play_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: rgba(0, 0, 0, 0.1);
+                border: none;
+                border-radius: 20px;
+                padding: 8px;
+                opacity: 0.0;  /* Start fully transparent */
+            }}
+            QPushButton:hover {{
+                background-color: {highlight_color.name()};
+                opacity: 0.9;
+            }}
+        """)
+        
+        # Connect play button click to open tutor
+        self.play_button.clicked.connect(self._on_play_clicked)
+        
+        # Use a stacked layout approach to overlay the button on the image
+        # First, add the image to the container
+        image_container_layout.addWidget(self.image_label)
+        
+        # Create an overlay layout that will position the play button
+        overlay_layout = QHBoxLayout()
+        overlay_layout.addStretch()
+        overlay_layout.addWidget(self.play_button)
+        overlay_layout.addStretch()
+        
+        # Set the overlay layout as a nested layout in the container
+        image_container.setLayout(image_container_layout)
+        
+        # Set the geometry of the play button to be centered over the image
+        # This is the key to preventing layout changes
+        self.play_button.setFixedSize(48, 48)  # Fixed size for the button
+        image_container_layout.addLayout(overlay_layout)
+        
+        # Set layout properties to position the play button over the image
+        image_container_layout.setAlignment(self.play_button, Qt.AlignCenter)
+        
+        # The play button is always visible but starts transparent
+        self.play_button.setProperty("hover", False)
+        
+        layout.addWidget(image_container)
         
         # Lesson title - use system default font
         self.title_label = QLabel(self.lesson.title)
@@ -164,8 +224,45 @@ class UnitCard(QFrame):
         """Handle mouse enter events for hover effect"""
         super().enterEvent(event)
         self.setCursor(Qt.PointingHandCursor)
+        # Make the play button visible by changing its style
+        if hasattr(self, 'play_button'):
+            self.play_button.setProperty("hover", True)
+            self.play_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border: none;
+                    border-radius: 20px;
+                    padding: 8px;
+                    opacity: 0.7;  /* Visible when hovered */
+                }}
+                QPushButton:hover {{
+                    background-color: {self.palette().color(QPalette.Highlight).name()};
+                    opacity: 0.9;
+                }}
+            """)
         
     def leaveEvent(self, event):
         """Handle mouse leave events for hover effect"""
         super().leaveEvent(event)
         self.setCursor(Qt.ArrowCursor)
+        # Make the play button transparent again
+        if hasattr(self, 'play_button'):
+            self.play_button.setProperty("hover", False)
+            self.play_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border: none;
+                    border-radius: 20px;
+                    padding: 8px;
+                    opacity: 0.0;  /* Transparent when not hovered */
+                }}
+                QPushButton:hover {{
+                    background-color: {self.palette().color(QPalette.Highlight).name()};
+                    opacity: 0.9;
+                }}
+            """)
+
+    def _on_play_clicked(self):
+        """Handle play button clicks to open the tutor"""
+        TutorViewProxy.get_instance().open_tutor(self.lesson)
+        self.play_clicked.emit(self.lesson)
