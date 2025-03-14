@@ -67,6 +67,15 @@ class DemoApp(QWidget):
         self.team_form.set_value(self.team)
         layout.addWidget(self.team_form)
         
+        # Example of how to create a ListOfThingsWidget with a custom factory
+        layout.addWidget(QLabel("Example with custom factory:"))
+        self.custom_list = ListOfThingsWidget(
+            Person, 
+            self,
+            custom_factory=lambda: Person(name="New Person", age=25)
+        )
+        layout.addWidget(self.custom_list)
+        
         # Add a button to show the current value
         self.show_value_button = QPushButton("Show Current Value")
         self.show_value_button.clicked.connect(self.show_current_value)

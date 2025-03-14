@@ -79,33 +79,11 @@ class ListOfThingsWidget(ListWidgetBase[T]):
         self.list_widget.model().rowsInserted.connect(self.valueChanged.emit)
         self.list_widget.model().rowsRemoved.connect(self.valueChanged.emit)
     
-    def _create_new_item(self) -> Optional[T]:
-        """Create a new item using the custom factory or default constructor."""
-        if self.custom_factory:
-            return self.custom_factory()
-        
-        # Try to create a default instance
-        try:
-            return self.item_type()
-        except TypeError:
-            # If the constructor requires arguments, show an error
-            QMessageBox.warning(
-                self, 
-                "Cannot Create Item", 
-                f"Cannot create a default instance of {self.item_type.__name__}. "
-                "Please provide a custom factory function."
-            )
-            return None
-    
     def _add_item(self):
         """Add a new item to the list."""
-        # Create a new item
-        new_item = self._create_new_item()
-        if not new_item:
-            return
-        
-        # Open the edit dialog for the new item
-        if self._edit_item_dialog(new_item):
+        # Open a dialog to create a new item
+        new_item = self._create_item_dialog()
+        if new_item:
             # Add the item to our internal list
             self.items.append(new_item)
             
@@ -142,6 +120,69 @@ class ListOfThingsWidget(ListWidgetBase[T]):
                 
                 # Emit value changed
                 self.valueChanged.emit()
+    
+    def _create_item_dialog(self) -> Optional[T]:
+        """
+        Open a dialog to create a new item.
+        
+        Returns:
+            Optional[T]: The created item or None if canceled
+        """
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Create {self.item_type.__name__}")
+        dialog.setMinimumWidth(400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Import here to avoid circular imports
+        from .form_generator import DataclassFormGenerator
+        
+        # Create a form for the item type
+        form = DataclassFormGenerator.create_form(self.item_type, dialog)
+        
+        # If we have a custom factory, use it to initialize the form
+        if self.custom_factory:
+            try:
+                initial_item = self.custom_factory()
+                form.set_value(initial_item)
+            except Exception:
+                # If factory fails, continue with empty form
+                pass
+        
+        # Add the form to a scroll area
+        scroll = QScrollArea(dialog)
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(form)
+        layout.addWidget(scroll)
+        
+        # Add OK/Cancel buttons
+        buttons_layout = QHBoxLayout()
+        ok_button = QPushButton("OK")
+        cancel_button = QPushButton("Cancel")
+        buttons_layout.addWidget(ok_button)
+        buttons_layout.addWidget(cancel_button)
+        layout.addLayout(buttons_layout)
+        
+        # Store references
+        dialog.form = form
+        dialog.new_item = None
+        
+        # Connect buttons
+        ok_button.clicked.connect(lambda: self._handle_create_dialog_accept(dialog))
+        cancel_button.clicked.connect(dialog.reject)
+        
+        # Show the dialog
+        result = dialog.exec_()
+        return dialog.new_item if result == QDialog.Accepted else None
+    
+    def _handle_create_dialog_accept(self, dialog):
+        """Handle the accept action for the create dialog."""
+        try:
+            # Try to create a new item from the form
+            dialog.new_item = dialog.form.get_value()
+            dialog.accept()
+        except Exception as e:
+            QMessageBox.warning(dialog, "Error", f"Error creating item: {str(e)}")
     
     def _edit_item_dialog(self, item: T) -> bool:
         """
