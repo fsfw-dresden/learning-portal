@@ -117,6 +117,7 @@
             python3
             debian-devscripts
             x11docker # for testing the debian build in a XFCE environment
+            python3Packages.flake8
           ] ++ commonBuildInputs;
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
 
@@ -141,7 +142,6 @@
             echo "  icon-finder      - Run the icon finder utility"
             echo "  portal           - Run the portal app"
             echo "  tutor            - Run the tutor app"
-            echo "  dataclass-forms-demo - Run the dataclass forms demo"
             echo "  devserver        - Run the devserver for the example courses"
           '';
         };
