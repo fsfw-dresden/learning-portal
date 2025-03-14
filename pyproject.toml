@@ -27,12 +27,13 @@ welcome = "welcome.main:main"
 icon-finder = "helper.icon_finder:main"
 portal = "portal.main:main"
 tutor = "tutor.main:main"
+dataclass-forms-demo = "dataclass_forms.demo:main"
 
 [project.scripts]
 release = "helper.release:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/vision_assistant", "src/welcome", "src/helper", "src/core", "src/portal", "src/tutor"]
+packages = ["src/vision_assistant", "src/welcome", "src/helper", "src/core", "src/portal", "src/tutor", "src/dataclass_forms"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src/vision_assistant/assets" = "vision_assistant/assets"

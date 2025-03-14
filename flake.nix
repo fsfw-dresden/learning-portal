@@ -128,6 +128,7 @@
             alias icon-finder="python -m helper.icon_finder"
             alias portal="python -m portal.main"
             alias tutor="python -m tutor.main"
+            alias dataclass-forms-demo="python -m dataclass_forms.demo"
             alias devserver="npx @liascript/devserver --live --input ./OER-materials"  ## broken. might want use: "node dist/index.js -i ../schulstick-portal/OER-materials/"
             
             echo "Development shell aliases available:"
@@ -136,6 +137,7 @@
             echo "  icon-finder      - Run the icon finder utility"
             echo "  portal           - Run the portal app"
             echo "  tutor            - Run the tutor app"
+            echo "  dataclass-forms-demo - Run the dataclass forms demo"
             echo "  devserver        - Run the devserver for the example courses"
           '';
         };
