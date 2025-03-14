@@ -4,6 +4,7 @@ Form generator for dataclasses.
 
 import inspect
 import typing
+import dataclasses
 from dataclasses import dataclass, field, fields, is_dataclass
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints, get_origin, get_args
 
@@ -143,14 +144,14 @@ class DataclassFormGenerator:
         # Handle basic types
         if field_type == str:
             widget = QLineEdit(parent)
-            if default_value is not None and default_value != field(default_factory=list):
+            if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
                 widget.setText(str(default_value))
             return widget
         
         elif field_type == int:
             widget = QSpinBox(parent)
             widget.setRange(-1000000, 1000000)  # Reasonable default range
-            if default_value is not None and default_value != field(default_factory=list):
+            if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
                 widget.setValue(default_value)
             return widget
         
@@ -164,7 +165,7 @@ class DataclassFormGenerator:
         
         elif field_type == bool:
             widget = QCheckBox(parent)
-            if default_value is not None and default_value != field(default_factory=list):
+            if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
                 widget.setChecked(default_value)
             return widget
         
@@ -192,7 +193,7 @@ class DataclassFormGenerator:
                 remove_button.clicked.connect(lambda: DataclassFormGenerator._remove_list_item(list_widget))
                 
                 # Initialize with default values if any
-                if default_value is not None and default_value != field(default_factory=list):
+                if default_value is not None and default_value != field(default_factory=list) and hasattr(default_value, '__iter__'):
                     for item in default_value:
                         list_widget.addItem(str(item))
                 
@@ -201,7 +202,7 @@ class DataclassFormGenerator:
                 # For other types of lists, fallback to a text edit with comma-separated values
                 widget = QTextEdit(parent)
                 widget.setPlaceholderText("Enter comma-separated values")
-                if default_value is not None and default_value != field(default_factory=list):
+                if default_value is not None and default_value != field(default_factory=list) and hasattr(default_value, '__iter__'):
                     widget.setPlainText(", ".join(str(x) for x in default_value))
                 return widget
         
@@ -234,7 +235,7 @@ class DataclassFormGenerator:
         
         # Default fallback for unknown types
         widget = QLineEdit(parent)
-        if default_value is not None and default_value != field(default_factory=list):
+        if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
             widget.setText(str(default_value))
         return widget
     
