@@ -12,8 +12,7 @@ from dataclasses import dataclass, field, fields, is_dataclass, MISSING
 logger = logging.getLogger(__name__)
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints, get_origin, get_args
 
-from .string_list_widget import StringListWidget
-from .list_of_things_widget import ListOfThingsWidget
+from .widget_interfaces import ListWidgetBase
 
 # Field metadata for form generation
 class FormField:
