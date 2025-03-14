@@ -1,15 +1,20 @@
 import random
-from typing import List
+import os
+import shutil
+from typing import List, Optional
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                             QScrollArea, QGridLayout, QTableWidget, 
                             QTableWidgetItem, QHeaderView, QProgressBar,
                             QFrame, QPushButton, QStackedWidget,
-                            QButtonGroup, QRadioButton)
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QPixmap, QFont
-from core.models import BaseLesson, LessonMetadata, Course
-from portal.simple_unit_card import SimpleUnitCard
+                            QButtonGroup, QRadioButton, QInputDialog,
+                            QToolButton, QFileDialog, QMessageBox)
+from PyQt5.QtCore import Qt, pyqtSignal, QSize
+from PyQt5.QtGui import QPixmap, QFont, QIcon
+from core.models import BaseLesson, LessonMetadata, Lesson, Course
 from portal.unit_card import UnitCard
+import logging
+
+logger = logging.getLogger(__name__)
 
 def tr(text: str) -> str:
     """Helper function for translations"""
@@ -32,12 +37,107 @@ class LessonProgressWidget(QWidget):
         
         layout.addWidget(self.progress_bar)
 
-class CourseDetailView(QWidget):
-    """Detailed view of a course and its lessons"""
-    back_clicked = pyqtSignal()
+class ImageWithEditButton(QWidget):
+    """Image widget with an edit button overlay"""
+    edit_clicked = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.initUI()
+        
+    def initUI(self):
+        # Use a layout to position the image and button
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Container for image and edit button
+        self.container = QFrame()
+        self.container.setMinimumSize(200, 150)
+        self.container.setMaximumSize(300, 225)
+        self.container.setStyleSheet("border-radius: 8px;")
+        
+        # Use absolute positioning for the container
+        container_layout = QVBoxLayout(self.container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setAlignment(Qt.AlignCenter)  # Center the image
+        
+        # Image label
+        self.image_label = QLabel()
+        self.image_label.setAlignment(Qt.AlignCenter)
+        # Use Qt.KeepAspectRatio instead of setScaledContents(True)
+        self.image_label.setScaledContents(False)
+        container_layout.addWidget(self.image_label)
+        
+        # Edit button (positioned in the top-right corner)
+        self.edit_button = QToolButton(self.container)
+        self.edit_button.setIcon(QIcon.fromTheme("document-edit"))
+        self.edit_button.setToolTip(tr("Change image"))
+        self.edit_button.clicked.connect(self.edit_clicked.emit)
+        self.edit_button.setStyleSheet("""
+            QToolButton {
+                background-color: rgba(40, 40, 40, 0.9);
+                border-radius: 12px;
+                padding: 4px;
+                color: white;
+            }
+            QToolButton:hover {
+                background-color: rgba(0, 0, 0, 1.0);
+                border: 1px solid white;
+            }
+        """)
+        self.edit_button.setIconSize(QSize(16, 16))
+        self.edit_button.setFixedSize(QSize(24, 24))
+        self.edit_button.move(self.container.width() - 30, 6)  # Position in top-right
+        self.edit_button.setVisible(False)  # Hidden by default
+        
+        layout.addWidget(self.container)
+        
+    def setPixmap(self, pixmap: QPixmap):
+        """Set the image pixmap"""
+        # Get the container size to ensure we don't exceed it
+        container_width = self.container.width()
+        container_height = self.container.height()
+        
+        # If the widget hasn't been properly sized yet, use minimum size
+        if container_width <= 1 or container_height <= 1:
+            container_width = self.container.minimumWidth()
+            container_height = self.container.minimumHeight()
+        
+        # Scale the pixmap to fit within the container while preserving aspect ratio
+        # Use a slightly smaller target size to prevent edge cropping
+        target_width = int(container_width * 0.9)
+        target_height = int(container_height * 0.9)
+        
+        logger.info(f"Setting pixmap: {pixmap.size()} to container size: {container_width}x{container_height}")
+        
+        scaled_pixmap = pixmap.scaled(
+            target_width, 
+            target_height,
+            Qt.KeepAspectRatio, 
+            Qt.SmoothTransformation
+        )
+        
+        self.image_label.setPixmap(scaled_pixmap)
+        
+    def setEditVisible(self, visible: bool):
+        """Show or hide the edit button"""
+        self.edit_button.setVisible(visible)
+        
+    def resizeEvent(self, event):
+        """Handle resize events to reposition the edit button"""
+        super().resizeEvent(event)
+        # Reposition the edit button when the widget is resized
+        self.edit_button.move(self.container.width() - 30, 6)
+
+class CourseDetailView(QWidget):
+    """Detailed view of a course and its lessons"""
+    back_clicked = pyqtSignal()
+    course_updated = pyqtSignal(Course)
+    
+    def __init__(self, writable=False, parent=None):
+        super().__init__(parent)
+        self.writable = writable
+        self.course = None
         self.initUI()
         
     def initUI(self):
@@ -54,20 +154,25 @@ class CourseDetailView(QWidget):
         # Course information section
         info_layout = QHBoxLayout()
         
-        # Left side - course image (if available)
-        self.image_label = QLabel()
-        self.image_label.setMinimumSize(200, 150)
-        self.image_label.setMaximumSize(300, 225)
-        self.image_label.setScaledContents(True)
-        self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setStyleSheet("background-color: #f0f0f0; border-radius: 8px;")
-        info_layout.addWidget(self.image_label)
-        
         # Right side - course title and description
         course_info = QVBoxLayout()
+        
+        # Title with optional edit button
+        title_layout = QHBoxLayout()
         self.title_label = QLabel()
         self.title_label.setFont(QFont("Arial", 18, QFont.Bold))
-        course_info.addWidget(self.title_label)
+        title_layout.addWidget(self.title_label)
+        
+        # Edit button (only visible if writable)
+        self.edit_title_button = QToolButton()
+        self.edit_title_button.setIcon(QIcon.fromTheme("document-edit"))
+        self.edit_title_button.setToolTip(tr("Edit course title"))
+        self.edit_title_button.clicked.connect(self.edit_course_title)
+        self.edit_title_button.setVisible(self.writable)
+        title_layout.addWidget(self.edit_title_button)
+        
+        title_layout.addStretch()
+        course_info.addLayout(title_layout)
         
         self.description_label = QLabel()
         self.description_label.setWordWrap(True)
@@ -81,7 +186,14 @@ class CourseDetailView(QWidget):
         
         course_info.addStretch()
         
-        info_layout.addLayout(course_info)
+        # Left side - course info
+        info_layout.addLayout(course_info, 3)
+        
+        # Right side - course image with edit button
+        self.image_widget = ImageWithEditButton()
+        self.image_widget.edit_clicked.connect(self.edit_course_image)
+        info_layout.addWidget(self.image_widget, 1)
+        
         layout.addLayout(info_layout)
         
         # Separator
@@ -139,6 +251,83 @@ class CourseDetailView(QWidget):
         self.table_view_button.toggled.connect(self.toggle_lesson_view)
         
         layout.addWidget(self.lessons_stack)
+    
+    def set_writable(self, writable: bool):
+        """Set whether the course details can be edited"""
+        self.writable = writable
+        self.edit_title_button.setVisible(writable)
+        self.image_widget.setEditVisible(writable)
+    
+    def edit_course_title(self):
+        """Open a dialog to edit the course title"""
+        if not self.course:
+            return
+            
+        current_title = self.course.title
+        new_title, ok = QInputDialog.getText(
+            self, 
+            tr("Edit Course Title"),
+            tr("Enter new course title:"),
+            text=current_title
+        )
+        
+        if ok and new_title and new_title != current_title:
+            # Update the course title
+            self.course.title = new_title
+            self.title_label.setText(new_title)
+            
+            # Save the changes
+            if self.course.save():
+                # Emit signal that course was updated
+                self.course_updated.emit(self.course)
+    
+    def edit_course_image(self):
+        """Open a file dialog to select a new course image"""
+        if not self.course or not self.course.course_path:
+            return
+            
+        # Open file dialog to select an image
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            tr("Select Course Image"),
+            "",
+            tr("Image Files (*.png *.jpg *.jpeg *.bmp *.gif)")
+        )
+        
+        if not file_path:
+            return  # User canceled
+            
+        try:
+            # Determine target filename (preserve extension)
+            _, ext = os.path.splitext(file_path)
+            target_filename = f"preview{ext}"
+            target_path = self.course.course_path / target_filename
+            
+            # Copy the image file to the course directory
+            shutil.copy2(file_path, target_path)
+            
+            # Update course metadata
+            self.course.preview_image = target_filename
+            
+            # Update the displayed image
+            pixmap = QPixmap(str(target_path))
+            if not pixmap.isNull():
+                self.image_widget.setPixmap(pixmap)
+            
+            # Save the changes
+            if self.course.save():
+                # Emit signal that course was updated
+                self.course_updated.emit(self.course)
+                
+            logger.info(f"Updated course image: {target_path}")
+            
+        except Exception as e:
+            logger.error(f"Error updating course image: {e}")
+            QMessageBox.warning(
+                self,
+                tr("Error"),
+                tr(f"Failed to update course image: {str(e)}")
+            )
         
     def toggle_lesson_view(self, checked):
         """Toggle between table and card view for lessons"""
@@ -149,25 +338,26 @@ class CourseDetailView(QWidget):
         
     def set_course(self, course: Course):
         """Update the view with course information"""
+        self.course = course
         self.title_label.setText(course.title)
         
         # Set description if available
-        description = getattr(course, 'description', '')
+        description = course.description
         self.description_label.setText(description or tr("No description available"))
         
         # Set collection name
         self.collection_label.setText(f"Collection: {course.collection_name}")
         
         # Set image if available
-        if hasattr(course, 'preview_path') and course.preview_path:
+        if course.preview_path:
             pixmap = QPixmap(str(course.preview_path))
             if not pixmap.isNull():
-                self.image_label.setPixmap(pixmap)
+                self.image_widget.setPixmap(pixmap)
         else:
             # Use placeholder
             placeholder = QPixmap(300, 225)
             placeholder.fill(Qt.lightGray)
-            self.image_label.setPixmap(placeholder)
+            self.image_widget.setPixmap(placeholder)
         
         # Populate lessons in both views
         self.populate_lessons_table(course.lessons)
@@ -213,8 +403,8 @@ class CourseDetailView(QWidget):
         
         # Add lesson cards
         for i, lesson in enumerate(lessons):
-            row = i // 2  # 2 cards per row
-            col = i % 2
+            row = i // 3
+            col = i % 3
             
-            card = UnitCard(lesson) if isinstance(lesson, LessonMetadata) else SimpleUnitCard(lesson)
+            card = UnitCard(lesson)
             self.lessons_card_layout.addWidget(card, row, col) 

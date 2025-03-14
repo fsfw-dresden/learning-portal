@@ -1,19 +1,18 @@
-import random
-from typing import Dict, List, Optional
+import logging
+from typing import Dict, List
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                            QScrollArea, QGridLayout, QTableWidget, 
-                            QTableWidgetItem, QHeaderView, QProgressBar,
-                            QFrame, QPushButton, QStackedWidget,
-                            QButtonGroup, QRadioButton, QComboBox)
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QPixmap, QFont
-from core.models import BaseLesson, LessonMetadata, Course, CourseCollection
+                            QScrollArea, QGridLayout, QProgressBar,
+                            QStackedWidget,
+                            QComboBox)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
+from core.models import Course, CourseCollection
 from core.unit_scanner import UnitScanner
-from portal.simple_unit_card import SimpleUnitCard
-from portal.unit_card import UnitCard
 from portal.course_card import CourseCard
 from portal.course_detail_view import CourseDetailView
 from portal.abstract_unit_course_view import AbstractUnitCourseView
+
+logger = logging.getLogger(__name__)
 
 def tr(text: str) -> str:
     """Helper function for translations"""
@@ -94,8 +93,9 @@ class UnitBrowserWidget(AbstractUnitCourseView):
         courses_layout.addWidget(scroll)
         
         # Course detail view
-        self.detail_view = CourseDetailView()
+        self.detail_view = CourseDetailView(writable=False)
         self.detail_view.back_clicked.connect(self.show_courses_view)
+        self.detail_view.course_updated.connect(self.on_course_updated)
         
         # Add both views to stacked widget
         self.stacked_widget.addWidget(self.courses_view)
@@ -172,10 +172,32 @@ class UnitBrowserWidget(AbstractUnitCourseView):
             no_courses_label.setStyleSheet("color: #888; font-size: 16px; padding: 40px;")
             self.cards_layout.addWidget(no_courses_label, 0, 0, 1, 3)
     
+    def on_course_updated(self, course: Course):
+        """Handle when a course is updated"""
+        # Update the course in our local cache
+        if course.title in self.courses_by_title:
+            self.courses_by_title[course.title] = course
+            
+        # Reload the courses to reflect changes
+        self.load_courses()
+    
     def show_course_detail(self, course_title: str):
         """Show detailed view for a specific course"""
         if course_title in self.courses_by_title:
             course = self.courses_by_title[course_title]
+            
+            # Check if the course is in a writable collection
+            writable = False
+            for collection in self.collections:
+                if collection.unique_collection_name == course.collection_name and collection.writable:
+                    writable = True
+                    break
+                    
+            logger.info(f"Course {course_title} is in writable collection: {writable}")
+            # Set writable flag on detail view
+            self.detail_view.set_writable(writable)
+            
+            # Set the course
             self.detail_view.set_course(course)
             self.stacked_widget.setCurrentWidget(self.detail_view)
     

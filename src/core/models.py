@@ -127,10 +127,6 @@ class BaseLesson:
             logger.error(f"Failed to save lesson metadata to {lesson_yml_path}: {e}")
             return False
 
-@dataclass 
-class SimpleLesson(BaseLesson):
-    """Simple lesson with just markdown content and no metadata"""
-    pass
 
 @dataclass
 class Lesson(BaseLesson):

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 import logging
 from fuzzywuzzy import fuzz
-from core.models import Course, CourseMetadata, Lesson, LessonMetadata, SimpleLesson, BaseLesson, CourseCollection
+from core.models import Course, CourseMetadata, Lesson, LessonMetadata, BaseLesson, CourseCollection
 from core.config import PortalConfig
 from core.env_helper import EnvHelper
 
@@ -103,8 +103,8 @@ class UnitScanner:
             # Check for markdown files directly in course directory
             for md_file in course_dir.glob("*.md"):
                 if md_file.is_file():
-                    # Create simple lesson from markdown file
-                    lesson = SimpleLesson(
+                    # Create lesson from markdown file
+                    lesson = Lesson(
                         title=md_file.stem,
                         content_path=md_file.as_posix(),
                         lesson_path=course_dir.as_posix()
@@ -170,10 +170,10 @@ class UnitScanner:
                     logger.error(f"Error parsing lesson metadata from {lesson_yml}: {e}")
                     return None
             else:
-                # Create simple lesson from markdown file
+                # Create lesson from markdown file
                 logger.info(f"Creating simple lesson from {content_path}")
                 dir_path = Path(lesson_dir)
-                return SimpleLesson(
+                return Lesson(
                     title=dir_path.parent.name + " - " + dir_path.name,
                     content_path=content_path.as_posix(),
                     lesson_path=lesson_dir.as_posix()

@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLineEdit,
 from PyQt5.QtCore import Qt, QTimer
 from core.models import BaseLesson, LessonMetadata
 from core.unit_scanner import UnitScanner
-from portal.simple_unit_card import SimpleUnitCard
 from portal.unit_card import UnitCard
 from portal.abstract_unit_course_view import AbstractUnitCourseView
 
@@ -81,7 +80,7 @@ class UnitFinderWidget(AbstractUnitCourseView):
         for i, unit in enumerate(units):
             row = i // 3  # 3 cards per row
             col = i % 3
-            card = UnitCard(unit) if isinstance(unit, LessonMetadata) else SimpleUnitCard(unit)
+            card = UnitCard(unit)
             self.cards_layout.addWidget(card, row, col)
 
     def reload(self):
