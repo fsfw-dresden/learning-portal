@@ -105,6 +105,10 @@
             drv = self.packages.${system}.schulstick-portal;
             name = "release";
           };
+          dataclass-forms-demo = flake-utils.lib.mkApp {
+            drv = self.packages.${system}.schulstick-portal;
+            name = "dataclass-forms-demo";
+          };
           default = self.apps.${system}.portal;
         };
 
