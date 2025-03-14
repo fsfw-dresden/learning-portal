@@ -5,8 +5,27 @@ Form generator for dataclasses.
 import inspect
 import typing
 import dataclasses
-from dataclasses import dataclass, field, fields, is_dataclass
+from dataclasses import dataclass, field, fields, is_dataclass, MISSING
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints, get_origin, get_args
+
+# Field metadata for form generation
+class FormField:
+    """Metadata for form fields"""
+    
+    @staticmethod
+    def number(min_value=None, max_value=None):
+        """Create metadata for a number field with min/max constraints"""
+        return {"form_field": {"min": min_value, "max": max_value}}
+    
+    @staticmethod
+    def text(placeholder=None, multiline=False):
+        """Create metadata for a text field"""
+        return {"form_field": {"placeholder": placeholder, "multiline": multiline}}
+    
+    @staticmethod
+    def options(choices=None):
+        """Create metadata for a field with predefined choices"""
+        return {"form_field": {"choices": choices or []}}
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
@@ -185,17 +204,55 @@ class DataclassFormGenerator:
         
         elif field_type == int:
             widget = QSpinBox(parent)
-            widget.setRange(-1000000, 1000000)  # Reasonable default range
+            
+            # Default range
+            min_value = -1000000
+            max_value = 1000000
+            
+            # Check for metadata with min/max constraints
+            if hasattr(default_value, 'metadata') and 'form_field' in default_value.metadata:
+                form_field = default_value.metadata['form_field']
+                if 'min' in form_field and form_field['min'] is not None:
+                    min_value = form_field['min']
+                if 'max' in form_field and form_field['max'] is not None:
+                    max_value = form_field['max']
+            
+            widget.setRange(min_value, max_value)
+            
+            # Set default value if provided
             if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
-                widget.setValue(default_value)
+                if isinstance(default_value, int):
+                    widget.setValue(default_value)
+                elif hasattr(default_value, 'default') and default_value.default != MISSING:
+                    widget.setValue(default_value.default)
+            
             return widget
         
         elif field_type == float:
             widget = QDoubleSpinBox(parent)
-            widget.setRange(-1000000, 1000000)  # Reasonable default range
+            
+            # Default range
+            min_value = -1000000
+            max_value = 1000000
+            
+            # Check for metadata with min/max constraints
+            if hasattr(default_value, 'metadata') and 'form_field' in default_value.metadata:
+                form_field = default_value.metadata['form_field']
+                if 'min' in form_field and form_field['min'] is not None:
+                    min_value = form_field['min']
+                if 'max' in form_field and form_field['max'] is not None:
+                    max_value = form_field['max']
+            
+            widget.setRange(min_value, max_value)
             widget.setDecimals(2)
+            
+            # Set default value if provided
             if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
-                widget.setValue(default_value)
+                if isinstance(default_value, float):
+                    widget.setValue(default_value)
+                elif hasattr(default_value, 'default') and default_value.default != MISSING:
+                    widget.setValue(default_value.default)
+            
             return widget
         
         elif field_type == bool:

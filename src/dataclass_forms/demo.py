@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QApplication, QDialog, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 )
 
-from dataclass_forms.form_generator import DataclassFormGenerator
+from dataclass_forms.form_generator import DataclassFormGenerator, FormField
 
 
 @dataclass
@@ -24,9 +24,15 @@ class Author:
 @dataclass
 class Course:
     title: str
-    skill_level: int = 0  # 0-10
+    skill_level: int = field(
+        default=0,
+        metadata=FormField.number(min_value=0, max_value=10)
+    )  # 0-10 skill level with enforced range
     authors: List[str] = field(default_factory=list)
-    description: str = ""
+    description: str = field(
+        default="",
+        metadata=FormField.text(multiline=True)
+    )
     is_published: bool = False
     
     # Nested dataclass example
