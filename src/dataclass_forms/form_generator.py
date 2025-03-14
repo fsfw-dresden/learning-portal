@@ -328,9 +328,6 @@ class DataclassFormGenerator:
             logger.info(f"Setting range for {field_type} field: min={min_value}, max={max_value}")
             
             if use_slider:
-                from PyQt5.QtCore import Qt
-                from PyQt5.QtWidgets import QSlider, QHBoxLayout, QLabel, QVBoxLayout
-                
                 # Create a container widget with a slider and a value label
                 container = QWidget(parent)
                 
@@ -338,11 +335,11 @@ class DataclassFormGenerator:
                 slider_orientation = Qt.Horizontal
                 if orientation == 'vertical':
                     slider_orientation = Qt.Vertical
-                    layout = QVBoxLayout(container)
+                    container_layout = QVBoxLayout(container)
                 else:
-                    layout = QHBoxLayout(container)
+                    container_layout = QHBoxLayout(container)
                 
-                layout.setContentsMargins(0, 0, 0, 0)
+                container_layout.setContentsMargins(0, 0, 0, 0)
                 
                 # Create slider
                 slider = QSlider(slider_orientation, container)
@@ -354,8 +351,8 @@ class DataclassFormGenerator:
                 value_label.setMinimumWidth(40)
                 
                 # Add widgets to layout
-                layout.addWidget(slider)
-                layout.addWidget(value_label)
+                container_layout.addWidget(slider)
+                container_layout.addWidget(value_label)
                 
                 # Connect slider value changed to update label
                 slider.valueChanged.connect(lambda v: value_label.setText(str(v)))
@@ -423,9 +420,6 @@ class DataclassFormGenerator:
             logger.info(f"Setting range for {field_type} field: min={min_value}, max={max_value}")
             
             if use_slider:
-                from PyQt5.QtCore import Qt
-                from PyQt5.QtWidgets import QSlider, QHBoxLayout, QLabel, QVBoxLayout
-                
                 # Create a container widget with a slider and a value label
                 container = QWidget(parent)
                 
@@ -433,11 +427,11 @@ class DataclassFormGenerator:
                 slider_orientation = Qt.Horizontal
                 if orientation == 'vertical':
                     slider_orientation = Qt.Vertical
-                    layout = QVBoxLayout(container)
+                    container_layout = QVBoxLayout(container)
                 else:
-                    layout = QHBoxLayout(container)
+                    container_layout = QHBoxLayout(container)
                 
-                layout.setContentsMargins(0, 0, 0, 0)
+                container_layout.setContentsMargins(0, 0, 0, 0)
                 
                 # For float sliders, we'll use 100 steps between min and max
                 # and convert the integer slider value to float
@@ -468,8 +462,8 @@ class DataclassFormGenerator:
                     return max(0, min(slider_value, slider_range))
                 
                 # Add widgets to layout
-                layout.addWidget(slider)
-                layout.addWidget(value_label)
+                container_layout.addWidget(slider)
+                container_layout.addWidget(value_label)
                 
                 # Connect slider value changed to update label
                 slider.valueChanged.connect(
