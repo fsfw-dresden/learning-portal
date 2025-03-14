@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints, get_origin, get_args
 
 from .string_list_widget import StringListWidget
+from .list_of_things_widget import ListOfThingsWidget
 
 # Field metadata for form generation
 class FormField:
@@ -72,6 +73,8 @@ class DataclassForm(QWidget):
             elif isinstance(widget, QComboBox):
                 values[field_name] = widget.currentText()
             elif isinstance(widget, StringListWidget):
+                values[field_name] = widget.get_items()
+            elif isinstance(widget, ListOfThingsWidget):
                 values[field_name] = widget.get_items()
             elif isinstance(widget, QListWidget):
                 items = []
@@ -137,6 +140,8 @@ class DataclassForm(QWidget):
                 if index >= 0:
                     widget.setCurrentIndex(index)
             elif isinstance(widget, StringListWidget):
+                widget.set_items(field_value)
+            elif isinstance(widget, ListOfThingsWidget):
                 widget.set_items(field_value)
             elif isinstance(widget, QListWidget):
                 widget.clear()
@@ -335,6 +340,14 @@ class DataclassFormGenerator:
                 
                 list_widget = StringListWidget(parent, default_items)
                 return list_widget
+            elif args and is_dataclass(args[0]):
+                # Create a ListOfThingsWidget for lists of dataclasses
+                default_items = []
+                if default_value is not None and default_value != field(default_factory=list) and hasattr(default_value, '__iter__'):
+                    default_items = default_value
+                
+                list_widget = ListOfThingsWidget(args[0], parent, default_items)
+                return list_widget
             else:
                 # For other types of lists, fallback to a text edit with comma-separated values
                 widget = QTextEdit(parent)
@@ -407,6 +420,8 @@ class DataclassFormGenerator:
         elif isinstance(widget, QComboBox):
             widget.currentIndexChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, StringListWidget):
+            widget.valueChanged.connect(form.valueChanged.emit)
+        elif isinstance(widget, ListOfThingsWidget):
             widget.valueChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QListWidget):
             widget.model().rowsInserted.connect(form.valueChanged.emit)
