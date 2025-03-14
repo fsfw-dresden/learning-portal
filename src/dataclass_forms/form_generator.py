@@ -12,6 +12,8 @@ from dataclasses import dataclass, field, fields, is_dataclass, MISSING
 logger = logging.getLogger(__name__)
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints, get_origin, get_args
 
+from .string_list_widget import StringListWidget
+
 # Field metadata for form generation
 class FormField:
     """Metadata for form fields"""
@@ -69,6 +71,8 @@ class DataclassForm(QWidget):
                 values[field_name] = widget.isChecked()
             elif isinstance(widget, QComboBox):
                 values[field_name] = widget.currentText()
+            elif isinstance(widget, StringListWidget):
+                values[field_name] = widget.get_items()
             elif isinstance(widget, QListWidget):
                 items = []
                 for i in range(widget.count()):
@@ -132,6 +136,8 @@ class DataclassForm(QWidget):
                 index = widget.findText(str(field_value))
                 if index >= 0:
                     widget.setCurrentIndex(index)
+            elif isinstance(widget, StringListWidget):
+                widget.set_items(field_value)
             elif isinstance(widget, QListWidget):
                 widget.clear()
                 for item in field_value:
@@ -322,31 +328,12 @@ class DataclassFormGenerator:
         # Handle lists
         elif origin is list:
             if args and args[0] == str:
-                # Create a list widget with add/remove buttons
-                container = QWidget(parent)
-                layout = QVBoxLayout(container)
-                layout.setContentsMargins(0, 0, 0, 0)
-                
-                list_widget = QListWidget(container)
-                layout.addWidget(list_widget)
-                
-                # Add buttons for managing the list
-                buttons_layout = QHBoxLayout()
-                add_button = QPushButton("Add", container)
-                remove_button = QPushButton("Remove", container)
-                buttons_layout.addWidget(add_button)
-                buttons_layout.addWidget(remove_button)
-                layout.addLayout(buttons_layout)
-                
-                # Connect buttons
-                add_button.clicked.connect(lambda: DataclassFormGenerator._add_list_item(list_widget))
-                remove_button.clicked.connect(lambda: DataclassFormGenerator._remove_list_item(list_widget))
-                
-                # Initialize with default values if any
+                # Create a StringListWidget for lists of strings
+                default_items = []
                 if default_value is not None and default_value != field(default_factory=list) and hasattr(default_value, '__iter__'):
-                    for item in default_value:
-                        list_widget.addItem(str(item))
+                    default_items = default_value
                 
+                list_widget = StringListWidget(parent, default_items)
                 return list_widget
             else:
                 # For other types of lists, fallback to a text edit with comma-separated values
@@ -419,6 +406,8 @@ class DataclassFormGenerator:
             widget.stateChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QComboBox):
             widget.currentIndexChanged.connect(form.valueChanged.emit)
+        elif isinstance(widget, StringListWidget):
+            widget.valueChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QListWidget):
             widget.model().rowsInserted.connect(form.valueChanged.emit)
             widget.model().rowsRemoved.connect(form.valueChanged.emit)
@@ -426,22 +415,6 @@ class DataclassFormGenerator:
             widget.valueChanged.connect(form.valueChanged.emit)
         elif hasattr(widget, 'form') and isinstance(widget.form, DataclassForm):
             widget.form.valueChanged.connect(form.valueChanged.emit)
-    
-    @staticmethod
-    def _add_list_item(list_widget):
-        """Add a new item to the list widget."""
-        list_widget.addItem("New Item")
-        # Make the new item editable
-        item = list_widget.item(list_widget.count() - 1)
-        list_widget.editItem(item)
-    
-    @staticmethod
-    def _remove_list_item(list_widget):
-        """Remove the selected item from the list widget."""
-        selected_items = list_widget.selectedItems()
-        if selected_items:
-            for item in selected_items:
-                list_widget.takeItem(list_widget.row(item))
     
     @staticmethod
     def _handle_dialog_accept(dialog):
