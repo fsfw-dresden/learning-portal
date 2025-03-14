@@ -550,13 +550,13 @@ class DataclassFormGenerator:
         elif is_dataclass(field_type):
             # Create a button that opens a dialog with the nested form
             container = QWidget(parent)
-            layout = QHBoxLayout(container)
-            layout.setContentsMargins(0, 0, 0, 0)
+            container_layout = QHBoxLayout(container)
+            container_layout.setContentsMargins(0, 0, 0, 0)
             
             value_label = QLabel("(click to edit)", container)
             edit_button = QPushButton("Edit", container)
-            layout.addWidget(value_label, 1)
-            layout.addWidget(edit_button)
+            container_layout.addWidget(value_label, 1)
+            container_layout.addWidget(edit_button)
             
             # Store the field type and a default instance for later form creation
             container.field_type = field_type
