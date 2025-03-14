@@ -54,9 +54,30 @@ class DataclassForm(QWidget):
             elif isinstance(widget, DataclassForm):
                 values[field_name] = widget.get_value()
             elif hasattr(widget, 'field_type') and is_dataclass(widget.field_type):
-                # For nested dataclass containers, create a default instance
+                # For nested dataclass containers, create a default instance with default values
                 # This is a placeholder as we don't store the actual value
-                values[field_name] = widget.field_type()
+                field_cls = widget.field_type
+                field_args = {}
+                
+                # Get required fields and provide default values
+                for f in fields(field_cls):
+                    if f.default is dataclasses.MISSING and f.default_factory is dataclasses.MISSING:
+                        # Required field - provide a default value based on type
+                        field_type = get_type_hints(field_cls).get(f.name)
+                        if field_type == str:
+                            field_args[f.name] = ""
+                        elif field_type == int:
+                            field_args[f.name] = 0
+                        elif field_type == float:
+                            field_args[f.name] = 0.0
+                        elif field_type == bool:
+                            field_args[f.name] = False
+                        elif get_origin(field_type) is list:
+                            field_args[f.name] = []
+                        else:
+                            field_args[f.name] = None
+                
+                values[field_name] = field_cls(**field_args)
         
         return self._dataclass_type(**values)
     
@@ -294,6 +315,19 @@ class DataclassFormGenerator:
         
         # Create a new form each time the dialog is opened
         nested_form = DataclassFormGenerator.create_form(field_type, dialog)
+        
+        # If there's an existing value in the parent form, try to get it
+        if hasattr(parent, 'get_value') and callable(parent.get_value):
+            try:
+                parent_value = parent.get_value()
+                # Find the field that matches our field_type
+                for field_name, field_value in inspect.getmembers(parent_value):
+                    if not field_name.startswith('_') and isinstance(field_value, field_type):
+                        nested_form.set_value(field_value)
+                        break
+            except Exception:
+                # If we can't get the parent value, just continue with defaults
+                pass
         
         # Add the form to a scroll area
         scroll = QScrollArea(dialog)
