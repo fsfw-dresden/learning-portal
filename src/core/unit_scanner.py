@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 import logging
 from fuzzywuzzy import fuzz
-from core.models import Course, CourseCollection, LessonMetadata, SimpleLesson, BaseLesson
+from core.models import Course, CourseMetadata, Lesson, LessonMetadata, SimpleLesson, BaseLesson, CourseCollection
 from core.config import PortalConfig
 from core.env_helper import EnvHelper
 
@@ -33,7 +33,7 @@ class UnitScanner:
 
     def _scan_collection(self, collection_path: Path, collection_name: str) -> None:
         """Scan a course collection directory"""
-        writable = True if collection_name in ['draft', 'private', 'unpublished'] else False
+        writable = True # if collection_name in ['drafts', 'private', 'unpublished'] else False
         collection = CourseCollection(
             title=collection_name,
             unique_collection_name=collection_name,
@@ -41,62 +41,92 @@ class UnitScanner:
             writable=writable
         )
         self.collections.append(collection)
+        
         for course_dir in collection_path.iterdir():
             if not course_dir.is_dir():
                 continue
-
+                
             course = self._load_course(course_dir, collection_name)
             if course:
                 self.courses.append(course)
-
+    
     def _load_course(self, course_dir: Path, collection_name: str) -> Optional[Course]:
         """Load a course from a directory"""
         course_yml = course_dir / "course.yml"
         if course_yml.exists():
-            course = Course.from_yaml_file(course_yml)
+            try:
+                # Load CourseMetadata from YAML
+                course_metadata = CourseMetadata.from_yaml_file(course_yml)
+                
+                # Create Course with metadata
+                course = Course(
+                    title=course_metadata.title,
+                    collection_name=collection_name,
+                    course_path=course_dir,
+                    metadata=course_metadata
+                )
+            except Exception as e:
+                logger.error(f"Error loading course from {course_yml}: {e}")
+                # Create minimal course from directory name
+                course = Course(
+                    title=course_dir.name,
+                    collection_name=collection_name,
+                    course_path=course_dir
+                )
         else:
             # Create minimal course from directory name
             course = Course(
                 title=course_dir.name,
-                collection_name=collection_name
+                collection_name=collection_name,
+                course_path=course_dir
             )
         
-        course.course_path = course_dir
         course.lessons = self._scan_lessons(course_dir)
         return course
-            
-
+    
     def _scan_lessons(self, course_dir: Path) -> List[BaseLesson]:
         """Scan for lessons in a course directory"""
         lessons = []
         
-        for lesson_dir in course_dir.iterdir():
-            if not lesson_dir.is_dir():
-                continue
-
-            lesson = self._load_lesson(lesson_dir)
-            if lesson:
-                lessons.append(lesson)
-                
-        return sorted(lessons, key=lambda l: Path(l.lesson_path).name)
-
+        # Check for lessons directory
+        lessons_dir = course_dir
+        if lessons_dir.exists() and lessons_dir.is_dir():
+            # Scan lessons directory
+            for lesson_dir in lessons_dir.iterdir():
+                if not lesson_dir.is_dir():
+                    continue
+                    
+                lesson = self._load_lesson(lesson_dir)
+                if lesson:
+                    lessons.append(lesson)
+        else:
+            # Check for markdown files directly in course directory
+            for md_file in course_dir.glob("*.md"):
+                if md_file.is_file():
+                    # Create simple lesson from markdown file
+                    lesson = SimpleLesson(
+                        title=md_file.stem,
+                        content_path=md_file.as_posix(),
+                        lesson_path=course_dir.as_posix()
+                    )
+                    lessons.append(lesson)
+        
+        return lessons
+    
     def _find_content_file(self, lesson_dir: Path) -> Optional[Path]:
-        """Find the content markdown file in a lesson directory"""
-        content_md = lesson_dir / "content.md"
-        markdown_files = list(lesson_dir.glob("*.md"))
-        
-        if not content_md.exists():
-            logger.warning(f"content.md not found in {lesson_dir}")
-            if not markdown_files:
-                return None
-            content_md = markdown_files[0]  # Take first markdown file found
-            logger.info(f"Using {content_md.name} instead of content.md")
-        
-        if len(markdown_files) > 1:
-            logger.warning(f"Multiple markdown files found in {lesson_dir}: {[f.name for f in markdown_files]}")
-        
-        return content_md
-
+        """Find the main content file in a lesson directory"""
+        # Look for README.md first
+        readme = lesson_dir / "README.md"
+        if readme.exists():
+            return readme
+            
+        # Then look for any markdown file
+        md_files = list(lesson_dir.glob("*.md"))
+        if md_files:
+            return md_files[0]
+            
+        return None
+    
     def _load_lesson(self, lesson_dir: Path) -> Optional[BaseLesson]:
         """Load a lesson from a directory"""
         try:
@@ -110,27 +140,41 @@ class UnitScanner:
                 
             if lesson_yml.exists():
                 logger.info(f"Loading lesson metadata from {lesson_yml}")
-                lesson = LessonMetadata.from_yaml_file(lesson_yml)
-                if not lesson.markdown_file:
-                    content_path = self._find_content_file(lesson_dir)
-                    if not content_path:
+                try:
+                    # Load LessonMetadata from YAML
+                    lesson_metadata = LessonMetadata.from_yaml_file(lesson_yml)
+                    
+                    # Determine content path
+                    if not lesson_metadata.markdown_file:
+                        content_path = self._find_content_file(lesson_dir)
+                        if not content_path:
+                            return None
+                        content_path_str = content_path.as_posix()
+                    else:
+                        content_path_str = (lesson_dir / lesson_metadata.markdown_file).as_posix()
+                    
+                    # Create Lesson with metadata
+                    lesson = Lesson(
+                        title=lesson_metadata.title,
+                        content_path=content_path_str,
+                        lesson_path=lesson_dir.as_posix(),
+                        metadata=lesson_metadata
+                    )
+                    
+                    if lesson.validate():
+                        return lesson
+                    else:
+                        logger.error(f"Lesson is invalid: {lesson}")
                         return None
-                    lesson.content_path = content_path.as_posix()
-                else:
-                    lesson.content_path = (lesson_dir / lesson.markdown_file).as_posix()
-                
-                lesson.lesson_path = lesson_dir.as_posix()
-                if lesson.validate():
-                    return lesson
-                else:
-                    logger.error(f"Lesson metadata is invalid: {lesson}")
+                except Exception as e:
+                    logger.error(f"Error parsing lesson metadata from {lesson_yml}: {e}")
                     return None
             else:
                 # Create simple lesson from markdown file
                 logger.info(f"Creating simple lesson from {content_path}")
                 dir_path = Path(lesson_dir)
                 return SimpleLesson(
-                    title= dir_path.parent.name + " - " + dir_path.name,
+                    title=dir_path.parent.name + " - " + dir_path.name,
                     content_path=content_path.as_posix(),
                     lesson_path=lesson_dir.as_posix()
                 )
