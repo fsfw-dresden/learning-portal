@@ -144,14 +144,14 @@ class CourseMetadata(YAMLWizard):
     """Serializable metadata for courses"""
     title: str
     collection_name: str
-    description: Optional[str] = None
+    description: Optional[str] = field(default=None, metadata={"form_field": {"multiline": True, "placeholder": "Enter course description"}})
     preview_image: Optional[str] = None
 
 @dataclass
 class Course:
     """Course containing multiple lessons"""
-    title: str
-    collection_name: str  # e.g. org_gitlab_user_repo
+    title: str = field(metadata={"form_field": {"placeholder": "Enter course title"}})
+    collection_name: str = field(metadata={"form_field": {"placeholder": "e.g. org_gitlab_user_repo"}})  # e.g. org_gitlab_user_repo
     course_path: Optional[Path] = None
     lessons: List[BaseLesson] = field(default_factory=list)
     metadata: Optional[CourseMetadata] = None

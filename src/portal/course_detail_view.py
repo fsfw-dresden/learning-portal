@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                             QFrame, QPushButton, QStackedWidget,
                             QButtonGroup, QRadioButton, QInputDialog,
                             QToolButton, QFileDialog, QMessageBox)
+from portal.course_editor_dialog import CourseEditorDialog
 from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 from core.models import BaseLesson, LessonMetadata, Lesson, Course
@@ -259,27 +260,24 @@ class CourseDetailView(QWidget):
         self.image_widget.setEditVisible(writable)
     
     def edit_course_title(self):
-        """Open a dialog to edit the course title"""
+        """Open a dialog to edit the course details"""
         if not self.course:
             return
             
-        current_title = self.course.title
-        new_title, ok = QInputDialog.getText(
-            self, 
-            tr("Edit Course Title"),
-            tr("Enter new course title:"),
-            text=current_title
-        )
+        # Create and show the course editor dialog
+        editor_dialog = CourseEditorDialog(self.course, self)
+        editor_dialog.course_updated.connect(self.on_course_updated)
+        editor_dialog.exec_()
+    
+    def on_course_updated(self, course):
+        """Handle course updated signal from editor dialog"""
+        # Update the UI with the new course details
+        self.title_label.setText(course.title)
+        self.description_label.setText(course.description or tr("No description available"))
+        self.collection_label.setText(f"Collection: {course.collection_name}")
         
-        if ok and new_title and new_title != current_title:
-            # Update the course title
-            self.course.title = new_title
-            self.title_label.setText(new_title)
-            
-            # Save the changes
-            if self.course.save():
-                # Emit signal that course was updated
-                self.course_updated.emit(self.course)
+        # Emit signal that course was updated
+        self.course_updated.emit(course)
     
     def edit_course_image(self):
         """Open a file dialog to select a new course image"""
