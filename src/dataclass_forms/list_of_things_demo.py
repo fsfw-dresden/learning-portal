@@ -22,11 +22,12 @@ class Address:
 @dataclass
 class Person:
     name: str
-    age: int
+    age: int = field(metadata=FormField.number(min_value=0, max_value=120, use_slider=True))
+    rating: float = field(default=5.0, metadata=FormField.number(min_value=0.0, max_value=10.0, use_slider=True))
     email: Optional[str] = None
     
     def __str__(self):
-        return f"{self.name} ({self.age})"
+        return f"{self.name} ({self.age}) - Rating: {self.rating}"
 
 @dataclass
 class Team:

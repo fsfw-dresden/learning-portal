@@ -18,9 +18,22 @@ class FormField:
     """Metadata for form fields"""
     
     @staticmethod
-    def number(min_value=None, max_value=None):
-        """Create metadata for a number field with min/max constraints"""
-        return {"form_field": {"min": min_value, "max": max_value}}
+    def number(min_value=None, max_value=None, use_slider=False, orientation=None):
+        """
+        Create metadata for a number field with min/max constraints
+        
+        Args:
+            min_value: Minimum allowed value
+            max_value: Maximum allowed value
+            use_slider: If True, use a slider instead of a spin box
+            orientation: Optional slider orientation ('horizontal' or 'vertical')
+        """
+        return {"form_field": {
+            "min": min_value, 
+            "max": max_value,
+            "use_slider": use_slider,
+            "orientation": orientation
+        }}
     
     @staticmethod
     def text(placeholder=None, multiline=False):
@@ -36,8 +49,9 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDoubleSpinBox, QFormLayout, QHBoxLayout,
     QLabel, QLineEdit, QListWidget, QPushButton, QScrollArea, QSpinBox,
-    QTextEdit, QVBoxLayout, QWidget
+    QSlider, QTextEdit, QVBoxLayout, QWidget
 )
+from PyQt5.QtCore import Qt
 
 T = TypeVar('T')
 
@@ -66,6 +80,14 @@ class DataclassForm(QWidget):
                 values[field_name] = widget.toPlainText()
             elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
                 values[field_name] = widget.value()
+            elif isinstance(widget, QWidget) and hasattr(widget, 'slider'):
+                # Handle slider widgets
+                if hasattr(widget, 'slider_to_float'):
+                    # Float slider
+                    values[field_name] = widget.slider_to_float(widget.slider.value())
+                else:
+                    # Integer slider
+                    values[field_name] = widget.slider.value()
             elif isinstance(widget, QCheckBox):
                 values[field_name] = widget.isChecked()
             elif isinstance(widget, QComboBox):
@@ -129,6 +151,32 @@ class DataclassForm(QWidget):
                 widget.setPlainText(str(field_value))
             elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
                 widget.setValue(field_value)
+            elif isinstance(widget, QWidget) and hasattr(widget, 'slider'):
+                # Handle slider widgets
+                if hasattr(widget, 'slider_to_float'):
+                    # Float slider - need to convert float to slider value
+                    min_value = widget.slider.minimum()
+                    max_value = widget.slider.maximum()
+                    range_value = max_value - min_value
+                    
+                    # Get min/max from the original range
+                    slider_min = widget.slider.minimum()
+                    slider_max = widget.slider.maximum()
+                    
+                    # Convert float to slider value (0-100)
+                    if hasattr(widget, 'float_to_slider'):
+                        slider_value = widget.float_to_slider(field_value)
+                    else:
+                        # Fallback calculation if float_to_slider not available
+                        slider_value = int(((field_value - slider_min) / (slider_max - slider_min)) * range_value)
+                        slider_value = max(min_value, min(slider_value, max_value))
+                    
+                    widget.slider.setValue(slider_value)
+                    widget.value_label.setText(str(field_value))
+                else:
+                    # Integer slider
+                    widget.slider.setValue(field_value)
+                    widget.value_label.setText(str(field_value))
             elif isinstance(widget, QCheckBox):
                 widget.setChecked(field_value)
             elif isinstance(widget, QComboBox):
@@ -246,11 +294,11 @@ class DataclassFormGenerator:
             return widget
         
         elif field_type == int:
-            widget = QSpinBox(parent)
-            
             # Default range
             min_value = -1000000
             max_value = 1000000
+            use_slider = False
+            orientation = None
             
             # Check for metadata with min/max constraints
             logger.debug(f"Field type: {field_type}, Default value: {default_value}")
@@ -268,25 +316,84 @@ class DataclassFormGenerator:
                 if 'max' in form_field and form_field['max'] is not None:
                     max_value = form_field['max']
                     logger.debug(f"Setting max value to {max_value}")
+                
+                if 'use_slider' in form_field and form_field['use_slider']:
+                    use_slider = True
+                    logger.debug("Using slider instead of spin box")
+                
+                if 'orientation' in form_field and form_field['orientation']:
+                    orientation = form_field['orientation']
+                    logger.debug(f"Setting slider orientation to {orientation}")
             
             logger.info(f"Setting range for {field_type} field: min={min_value}, max={max_value}")
-            widget.setRange(min_value, max_value)
             
-            # Set default value if provided
-            if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
-                if isinstance(default_value, int):
-                    widget.setValue(default_value)
-                elif hasattr(default_value, 'default') and default_value.default != MISSING:
-                    widget.setValue(default_value.default)
-            
-            return widget
+            if use_slider:
+                from PyQt5.QtCore import Qt
+                from PyQt5.QtWidgets import QSlider, QHBoxLayout, QLabel, QVBoxLayout
+                
+                # Create a container widget with a slider and a value label
+                container = QWidget(parent)
+                
+                # Choose orientation
+                slider_orientation = Qt.Horizontal
+                if orientation == 'vertical':
+                    slider_orientation = Qt.Vertical
+                    layout = QVBoxLayout(container)
+                else:
+                    layout = QHBoxLayout(container)
+                
+                layout.setContentsMargins(0, 0, 0, 0)
+                
+                # Create slider
+                slider = QSlider(slider_orientation, container)
+                slider.setRange(min_value, max_value)
+                slider.setTickPosition(QSlider.TicksBelow)
+                
+                # Create value label
+                value_label = QLabel(str(min_value), container)
+                value_label.setMinimumWidth(40)
+                
+                # Add widgets to layout
+                layout.addWidget(slider)
+                layout.addWidget(value_label)
+                
+                # Connect slider value changed to update label
+                slider.valueChanged.connect(lambda v: value_label.setText(str(v)))
+                
+                # Set default value if provided
+                if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
+                    if isinstance(default_value, int):
+                        slider.setValue(default_value)
+                        value_label.setText(str(default_value))
+                    elif hasattr(default_value, 'default') and default_value.default != MISSING:
+                        slider.setValue(default_value.default)
+                        value_label.setText(str(default_value.default))
+                
+                # Store the slider in the container for value retrieval
+                container.slider = slider
+                container.value_label = value_label
+                
+                return container
+            else:
+                # Use regular spin box
+                widget = QSpinBox(parent)
+                widget.setRange(min_value, max_value)
+                
+                # Set default value if provided
+                if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
+                    if isinstance(default_value, int):
+                        widget.setValue(default_value)
+                    elif hasattr(default_value, 'default') and default_value.default != MISSING:
+                        widget.setValue(default_value.default)
+                
+                return widget
         
         elif field_type == float:
-            widget = QDoubleSpinBox(parent)
-            
             # Default range
             min_value = -1000000
             max_value = 1000000
+            use_slider = False
+            orientation = None
             
             # Check for metadata with min/max constraints
             logger.debug(f"Float field type: {field_type}, Default value: {default_value}")
@@ -304,19 +411,102 @@ class DataclassFormGenerator:
                 if 'max' in form_field and form_field['max'] is not None:
                     max_value = form_field['max']
                     logger.debug(f"Setting max value to {max_value}")
+                
+                if 'use_slider' in form_field and form_field['use_slider']:
+                    use_slider = True
+                    logger.debug("Using slider instead of spin box")
+                
+                if 'orientation' in form_field and form_field['orientation']:
+                    orientation = form_field['orientation']
+                    logger.debug(f"Setting slider orientation to {orientation}")
             
             logger.info(f"Setting range for {field_type} field: min={min_value}, max={max_value}")
-            widget.setRange(min_value, max_value)
-            widget.setDecimals(2)
             
-            # Set default value if provided
-            if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
-                if isinstance(default_value, float):
-                    widget.setValue(default_value)
-                elif hasattr(default_value, 'default') and default_value.default != MISSING:
-                    widget.setValue(default_value.default)
-            
-            return widget
+            if use_slider:
+                from PyQt5.QtCore import Qt
+                from PyQt5.QtWidgets import QSlider, QHBoxLayout, QLabel, QVBoxLayout
+                
+                # Create a container widget with a slider and a value label
+                container = QWidget(parent)
+                
+                # Choose orientation
+                slider_orientation = Qt.Horizontal
+                if orientation == 'vertical':
+                    slider_orientation = Qt.Vertical
+                    layout = QVBoxLayout(container)
+                else:
+                    layout = QHBoxLayout(container)
+                
+                layout.setContentsMargins(0, 0, 0, 0)
+                
+                # For float sliders, we'll use 100 steps between min and max
+                # and convert the integer slider value to float
+                slider_range = 100
+                
+                # Create slider
+                slider = QSlider(slider_orientation, container)
+                slider.setRange(0, slider_range)
+                slider.setTickPosition(QSlider.TicksBelow)
+                
+                # Create value label
+                value_label = QLabel(str(min_value), container)
+                value_label.setMinimumWidth(60)
+                
+                # Function to convert slider value to float
+                def slider_to_float(slider_value):
+                    # Map slider value (0-100) to the float range
+                    float_value = min_value + (slider_value / slider_range) * (max_value - min_value)
+                    # Round to 2 decimal places
+                    return round(float_value, 2)
+                
+                # Function to convert float to slider value
+                def float_to_slider(float_value):
+                    # Map float value to slider range (0-100)
+                    if max_value == min_value:
+                        return 0
+                    slider_value = int(((float_value - min_value) / (max_value - min_value)) * slider_range)
+                    return max(0, min(slider_value, slider_range))
+                
+                # Add widgets to layout
+                layout.addWidget(slider)
+                layout.addWidget(value_label)
+                
+                # Connect slider value changed to update label
+                slider.valueChanged.connect(
+                    lambda v: value_label.setText(str(slider_to_float(v)))
+                )
+                
+                # Set default value if provided
+                if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
+                    if isinstance(default_value, float):
+                        slider_value = float_to_slider(default_value)
+                        slider.setValue(slider_value)
+                        value_label.setText(str(default_value))
+                    elif hasattr(default_value, 'default') and default_value.default != MISSING:
+                        slider_value = float_to_slider(default_value.default)
+                        slider.setValue(slider_value)
+                        value_label.setText(str(default_value.default))
+                
+                # Store the slider and conversion functions in the container for value retrieval
+                container.slider = slider
+                container.value_label = value_label
+                container.slider_to_float = slider_to_float
+                
+                return container
+            else:
+                # Use regular double spin box
+                widget = QDoubleSpinBox(parent)
+                widget.setRange(min_value, max_value)
+                widget.setDecimals(2)
+                
+                # Set default value if provided
+                if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
+                    if isinstance(default_value, float):
+                        widget.setValue(default_value)
+                    elif hasattr(default_value, 'default') and default_value.default != MISSING:
+                        widget.setValue(default_value.default)
+                
+                return widget
         
         elif field_type == bool:
             widget = QCheckBox(parent)
@@ -415,6 +605,9 @@ class DataclassFormGenerator:
             widget.textChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
             widget.valueChanged.connect(form.valueChanged.emit)
+        elif isinstance(widget, QWidget) and hasattr(widget, 'slider'):
+            # Connect slider's valueChanged signal
+            widget.slider.valueChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QCheckBox):
             widget.stateChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QComboBox):
