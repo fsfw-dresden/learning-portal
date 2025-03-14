@@ -159,7 +159,7 @@ class DataclassFormGenerator:
             widget = QDoubleSpinBox(parent)
             widget.setRange(-1000000, 1000000)  # Reasonable default range
             widget.setDecimals(2)
-            if default_value is not None and default_value != field(default_factory=list):
+            if default_value is not None and default_value != field(default_factory=list) and not isinstance(default_value, type(dataclasses.MISSING)):
                 widget.setValue(default_value)
             return widget
         
