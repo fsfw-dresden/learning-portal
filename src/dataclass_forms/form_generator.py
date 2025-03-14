@@ -4,13 +4,12 @@ Form generator for dataclasses.
 
 import inspect
 import logging
-import typing
 import dataclasses
-from dataclasses import dataclass, field, fields, is_dataclass, MISSING
+from dataclasses import field, fields, is_dataclass, MISSING
 
 # Set up logging
 logger = logging.getLogger(__name__)
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints, get_origin, get_args
+from typing import Type, TypeVar, Union, get_type_hints, get_origin, get_args
 
 from .widget_interfaces import ListWidgetBase
 
@@ -33,7 +32,7 @@ class FormField:
         """Create metadata for a field with predefined choices"""
         return {"form_field": {"choices": choices or []}}
 
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDoubleSpinBox, QFormLayout, QHBoxLayout,
     QLabel, QLineEdit, QListWidget, QPushButton, QScrollArea, QSpinBox,
