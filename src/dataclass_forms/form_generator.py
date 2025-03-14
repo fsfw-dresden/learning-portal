@@ -18,7 +18,7 @@ class FormField:
     """Metadata for form fields"""
     
     @staticmethod
-    def number(min_value=None, max_value=None, use_slider=False, orientation=None):
+    def number(min_value=None, max_value=None, use_slider=False, orientation=None, hidden=False):
         """
         Create metadata for a number field with min/max constraints
         
@@ -27,23 +27,50 @@ class FormField:
             max_value: Maximum allowed value
             use_slider: If True, use a slider instead of a spin box
             orientation: Optional slider orientation ('horizontal' or 'vertical')
+            hidden: If True, the field will be hidden in the form
         """
         return {"form_field": {
             "min": min_value, 
             "max": max_value,
             "use_slider": use_slider,
-            "orientation": orientation
+            "orientation": orientation,
+            "hidden": hidden
         }}
     
     @staticmethod
-    def text(placeholder=None, multiline=False):
-        """Create metadata for a text field"""
-        return {"form_field": {"placeholder": placeholder, "multiline": multiline}}
+    def text(placeholder=None, multiline=False, hidden=False):
+        """
+        Create metadata for a text field
+        
+        Args:
+            placeholder: Placeholder text
+            multiline: If True, use a text area instead of a line edit
+            hidden: If True, the field will be hidden in the form
+        """
+        return {"form_field": {
+            "placeholder": placeholder, 
+            "multiline": multiline,
+            "hidden": hidden
+        }}
     
     @staticmethod
-    def options(choices=None):
-        """Create metadata for a field with predefined choices"""
-        return {"form_field": {"choices": choices or []}}
+    def options(choices=None, hidden=False):
+        """
+        Create metadata for a field with predefined choices
+        
+        Args:
+            choices: List of choices
+            hidden: If True, the field will be hidden in the form
+        """
+        return {"form_field": {
+            "choices": choices or [],
+            "hidden": hidden
+        }}
+    
+    @staticmethod
+    def hidden():
+        """Create metadata for a hidden field"""
+        return {"form_field": {"hidden": True}}
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -224,20 +251,32 @@ class DataclassFormGenerator:
             if field_name.startswith('_'):
                 continue
             
+            # Check if field should be hidden
+            is_hidden = False
+            if hasattr(f, 'metadata') and 'form_field' in f.metadata:
+                form_field = f.metadata['form_field']
+                if 'hidden' in form_field and form_field['hidden']:
+                    is_hidden = True
+            
             # Log field information
             logger.debug(f"Processing field: {field_name}, type: {field_type}")
             logger.debug(f"Field default: {f.default}")
             logger.debug(f"Field metadata: {f.metadata if hasattr(f, 'metadata') else 'No metadata'}")
-            
-            # Create label with field name
-            label = QLabel(field_name.replace('_', ' ').title())
+            logger.debug(f"Field hidden: {is_hidden}")
             
             # Create appropriate widget based on field type
             widget = DataclassFormGenerator._create_widget_for_type(field_type, f, form)
             
-            # Add to form
-            form._layout.addRow(label, widget)
-            form._widgets[field_name] = widget
+            # Add to form (visible or hidden)
+            if is_hidden:
+                # Add to widgets dictionary but don't show in the form
+                form._widgets[field_name] = widget
+                widget.setVisible(False)
+            else:
+                # Create label with field name
+                label = QLabel(field_name.replace('_', ' ').title())
+                form._layout.addRow(label, widget)
+                form._widgets[field_name] = widget
             
             # Connect signals
             DataclassFormGenerator._connect_widget_signals(widget, form)
