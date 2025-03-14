@@ -253,9 +253,11 @@ class DataclassFormGenerator:
             container.field_type = field_type
             
             # Connect button to open dialog
+            # Store field_type in a local variable to avoid lambda capture issues
+            ft = field_type
             edit_button.clicked.connect(
-                lambda field_type=field_type: DataclassFormGenerator._open_nested_form_dialog(
-                    field_type, parent, value_label
+                lambda checked=False, ft=ft: DataclassFormGenerator._open_nested_form_dialog(
+                    ft, parent, value_label
                 )
             )
             
@@ -308,6 +310,12 @@ class DataclassFormGenerator:
     def _open_nested_form_dialog(field_type, parent, value_label=None):
         """Open a dialog with the nested form."""
         dialog = QDialog(parent)
+        
+        # Ensure field_type is a dataclass type
+        if not is_dataclass(field_type):
+            print(f"Error: Expected dataclass type, got {type(field_type)}")
+            return
+            
         dialog.setWindowTitle(f"Edit {field_type.__name__}")
         dialog.setMinimumWidth(400)
         
