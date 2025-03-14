@@ -8,7 +8,7 @@ from typing import List, Optional
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QPushButton, QLabel
 
 from .list_of_things_widget import ListOfThingsWidget
-from .form_generator import DataclassFormGenerator
+from .form_generator import DataclassFormGenerator, FormField
 
 @dataclass
 class Address:
