@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from PyQt5.QtGui import QPixmap, QFont, QPalette, QIcon
 from core.models import BaseLesson, Lesson
 from portal.horizontal_star_rating import HorizontalStarRating
+from portal.unit_context_menu import UnitContextMenu
 from tutor.tutor_proxy import TutorViewProxy
 
 class UnitCard(QFrame):
@@ -217,6 +218,10 @@ class UnitCard(QFrame):
         
     def mousePressEvent(self, event):
         """Handle mouse press events to make the card clickable"""
+        if event.button() == Qt.RightButton:
+            context_menu = UnitContextMenu(self.lesson, self)
+            context_menu.exec_(event.globalPos())
+
         super().mousePressEvent(event)
         self.clicked.emit(self.lesson)
         
