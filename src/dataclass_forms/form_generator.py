@@ -54,30 +54,33 @@ class DataclassForm(QWidget):
             elif isinstance(widget, DataclassForm):
                 values[field_name] = widget.get_value()
             elif hasattr(widget, 'field_type') and is_dataclass(widget.field_type):
-                # For nested dataclass containers, create a default instance with default values
-                # This is a placeholder as we don't store the actual value
-                field_cls = widget.field_type
-                field_args = {}
-                
-                # Get required fields and provide default values
-                for f in fields(field_cls):
-                    if f.default is dataclasses.MISSING and f.default_factory is dataclasses.MISSING:
-                        # Required field - provide a default value based on type
-                        field_type = get_type_hints(field_cls).get(f.name)
-                        if field_type == str:
-                            field_args[f.name] = ""
-                        elif field_type == int:
-                            field_args[f.name] = 0
-                        elif field_type == float:
-                            field_args[f.name] = 0.0
-                        elif field_type == bool:
-                            field_args[f.name] = False
-                        elif get_origin(field_type) is list:
-                            field_args[f.name] = []
-                        else:
-                            field_args[f.name] = None
-                
-                values[field_name] = field_cls(**field_args)
+                # For nested dataclass containers, use the stored value if available
+                if hasattr(widget, 'field_value'):
+                    values[field_name] = widget.field_value
+                else:
+                    # Create a default instance as fallback
+                    field_cls = widget.field_type
+                    field_args = {}
+                    
+                    # Get required fields and provide default values
+                    for f in fields(field_cls):
+                        if f.default is dataclasses.MISSING and f.default_factory is dataclasses.MISSING:
+                            # Required field - provide a default value based on type
+                            field_type = get_type_hints(field_cls).get(f.name)
+                            if field_type == str:
+                                field_args[f.name] = ""
+                            elif field_type == int:
+                                field_args[f.name] = 0
+                            elif field_type == float:
+                                field_args[f.name] = 0.0
+                            elif field_type == bool:
+                                field_args[f.name] = False
+                            elif get_origin(field_type) is list:
+                                field_args[f.name] = []
+                            else:
+                                field_args[f.name] = None
+                    
+                    values[field_name] = field_cls(**field_args)
         
         return self._dataclass_type(**values)
     
@@ -113,7 +116,8 @@ class DataclassForm(QWidget):
             elif isinstance(widget, DataclassForm):
                 widget.set_value(field_value)
             elif hasattr(widget, 'field_type') and is_dataclass(widget.field_type) and field_value is not None:
-                # For nested dataclass containers, update the label
+                # For nested dataclass containers, store the value and update the label
+                widget.field_value = field_value
                 for child in widget.children():
                     if isinstance(child, QLabel):
                         child.setText("(edited)")
@@ -249,8 +253,26 @@ class DataclassFormGenerator:
             layout.addWidget(value_label, 1)
             layout.addWidget(edit_button)
             
-            # Store the field type for later form creation
+            # Store the field type and a default instance for later form creation
             container.field_type = field_type
+            # Create a default instance with empty values
+            field_args = {}
+            for f in fields(field_type):
+                if f.default is dataclasses.MISSING and f.default_factory is dataclasses.MISSING:
+                    field_type_hint = get_type_hints(field_type).get(f.name)
+                    if field_type_hint == str:
+                        field_args[f.name] = ""
+                    elif field_type_hint == int:
+                        field_args[f.name] = 0
+                    elif field_type_hint == float:
+                        field_args[f.name] = 0.0
+                    elif field_type_hint == bool:
+                        field_args[f.name] = False
+                    elif get_origin(field_type_hint) is list:
+                        field_args[f.name] = []
+                    else:
+                        field_args[f.name] = None
+            container.field_value = field_type(**field_args)
             
             # Connect button to open dialog
             # Store field_type in a local variable to avoid lambda capture issues
@@ -307,6 +329,27 @@ class DataclassFormGenerator:
                 list_widget.takeItem(list_widget.row(item))
     
     @staticmethod
+    def _handle_dialog_accept(dialog):
+        """Handle the accept action for nested form dialogs."""
+        # Get the form value
+        if hasattr(dialog, 'nested_form') and dialog.nested_form:
+            try:
+                value = dialog.nested_form.get_value()
+                
+                # Store the value in the container widget
+                if hasattr(dialog, 'container') and dialog.container:
+                    dialog.container.field_value = value
+                
+                # Update the label
+                if hasattr(dialog, 'value_label') and dialog.value_label:
+                    dialog.value_label.setText("(edited)")
+            except Exception as e:
+                print(f"Error getting form value: {e}")
+        
+        # Accept the dialog
+        dialog.accept()
+    
+    @staticmethod
     def _open_nested_form_dialog(field_type, parent, value_label=None):
         """Open a dialog with the nested form."""
         dialog = QDialog(parent)
@@ -324,18 +367,18 @@ class DataclassFormGenerator:
         # Create a new form each time the dialog is opened
         nested_form = DataclassFormGenerator.create_form(field_type, dialog)
         
-        # If there's an existing value in the parent form, try to get it
-        if hasattr(parent, 'get_value') and callable(parent.get_value):
-            try:
-                parent_value = parent.get_value()
-                # Find the field that matches our field_type
-                for field_name, field_value in inspect.getmembers(parent_value):
-                    if not field_name.startswith('_') and isinstance(field_value, field_type):
-                        nested_form.set_value(field_value)
-                        break
-            except Exception:
-                # If we can't get the parent value, just continue with defaults
-                pass
+        # Get the container widget that holds our field_type and field_value
+        container = None
+        if isinstance(parent, QWidget):
+            # Find the container widget in the parent's hierarchy
+            for widget in parent.findChildren(QWidget):
+                if hasattr(widget, 'field_type') and widget.field_type == field_type:
+                    container = widget
+                    break
+        
+        # If we found the container with a stored value, use it
+        if container and hasattr(container, 'field_value'):
+            nested_form.set_value(container.field_value)
         
         # Add the form to a scroll area
         scroll = QScrollArea(dialog)
@@ -351,13 +394,14 @@ class DataclassFormGenerator:
         buttons_layout.addWidget(cancel_button)
         layout.addLayout(buttons_layout)
         
-        # Connect buttons
-        ok_button.clicked.connect(dialog.accept)
+        # Store references for the accept handler
+        dialog.nested_form = nested_form
+        dialog.container = container
+        dialog.value_label = value_label
+        
+        # Connect buttons with custom handlers
+        ok_button.clicked.connect(lambda: DataclassFormGenerator._handle_dialog_accept(dialog))
         cancel_button.clicked.connect(dialog.reject)
         
         # Show the dialog
-        result = dialog.exec_()
-        
-        if result == QDialog.Accepted and value_label:
-            # Update the value label to show that the nested form has been edited
-            value_label.setText("(edited)")
+        dialog.exec_()
