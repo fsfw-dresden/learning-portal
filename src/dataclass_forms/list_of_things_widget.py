@@ -2,27 +2,25 @@
 Widget for editing a list of dataclass objects.
 """
 
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout, 
-    QWidget, QDialog, QLabel, QScrollArea, QMessageBox
+    QDialog, QLabel, QScrollArea, QMessageBox
 )
-from typing import List, Type, TypeVar, Generic, Optional, Callable
+from typing import List, Type, TypeVar, Optional, Callable
 from dataclasses import is_dataclass
 
-from .form_generator import DataclassFormGenerator
+from .widget_interfaces import ListWidgetBase
 
 T = TypeVar('T')
 
-class ListOfThingsWidget(QWidget, Generic[T]):
+class ListOfThingsWidget(ListWidgetBase[T]):
     """
     A widget for editing a list of dataclass objects.
     
     This widget provides a list view with buttons to add, edit, and remove items.
     Each item in the list is displayed using its __str__ method.
     """
-    
-    valueChanged = pyqtSignal()
     
     def __init__(self, item_type: Type[T], parent=None, items: Optional[List[T]] = None,
                  custom_factory: Optional[Callable[[], T]] = None):
@@ -160,6 +158,9 @@ class ListOfThingsWidget(QWidget, Generic[T]):
         dialog.setMinimumWidth(400)
         
         layout = QVBoxLayout(dialog)
+        
+        # Import here to avoid circular imports
+        from .form_generator import DataclassFormGenerator
         
         # Create a form for the item
         form = DataclassFormGenerator.create_form(self.item_type, dialog)

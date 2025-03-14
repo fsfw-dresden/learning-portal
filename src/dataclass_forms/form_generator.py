@@ -72,9 +72,7 @@ class DataclassForm(QWidget):
                 values[field_name] = widget.isChecked()
             elif isinstance(widget, QComboBox):
                 values[field_name] = widget.currentText()
-            elif isinstance(widget, StringListWidget):
-                values[field_name] = widget.get_items()
-            elif isinstance(widget, ListOfThingsWidget):
+            elif isinstance(widget, ListWidgetBase):
                 values[field_name] = widget.get_items()
             elif isinstance(widget, QListWidget):
                 items = []
@@ -139,9 +137,7 @@ class DataclassForm(QWidget):
                 index = widget.findText(str(field_value))
                 if index >= 0:
                     widget.setCurrentIndex(index)
-            elif isinstance(widget, StringListWidget):
-                widget.set_items(field_value)
-            elif isinstance(widget, ListOfThingsWidget):
+            elif isinstance(widget, ListWidgetBase):
                 widget.set_items(field_value)
             elif isinstance(widget, QListWidget):
                 widget.clear()
@@ -333,6 +329,9 @@ class DataclassFormGenerator:
         # Handle lists
         elif origin is list:
             if args and args[0] == str:
+                # Import here to avoid circular imports
+                from .string_list_widget import StringListWidget
+                
                 # Create a StringListWidget for lists of strings
                 default_items = []
                 if default_value is not None and default_value != field(default_factory=list) and hasattr(default_value, '__iter__'):
@@ -341,6 +340,9 @@ class DataclassFormGenerator:
                 list_widget = StringListWidget(parent, default_items)
                 return list_widget
             elif args and is_dataclass(args[0]):
+                # Import here to avoid circular imports
+                from .list_of_things_widget import ListOfThingsWidget
+                
                 # Create a ListOfThingsWidget for lists of dataclasses
                 default_items = []
                 if default_value is not None and default_value != field(default_factory=list) and hasattr(default_value, '__iter__'):
@@ -419,9 +421,7 @@ class DataclassFormGenerator:
             widget.stateChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QComboBox):
             widget.currentIndexChanged.connect(form.valueChanged.emit)
-        elif isinstance(widget, StringListWidget):
-            widget.valueChanged.connect(form.valueChanged.emit)
-        elif isinstance(widget, ListOfThingsWidget):
+        elif isinstance(widget, ListWidgetBase):
             widget.valueChanged.connect(form.valueChanged.emit)
         elif isinstance(widget, QListWidget):
             widget.model().rowsInserted.connect(form.valueChanged.emit)

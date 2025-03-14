@@ -2,20 +2,20 @@
 Widget for editing a list of strings.
 """
 
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QHBoxLayout, QListWidget, QPushButton, QVBoxLayout, QWidget, QInputDialog
+    QHBoxLayout, QListWidget, QPushButton, QVBoxLayout, QInputDialog
 )
 
-class StringListWidget(QWidget):
+from .widget_interfaces import ListWidgetBase
+
+class StringListWidget(ListWidgetBase[str]):
     """
     A widget for editing a list of strings with add/remove functionality.
     
     This widget provides a list view with buttons to add and remove items.
     It can be used standalone or integrated into forms.
     """
-    
-    valueChanged = pyqtSignal()
     
     def __init__(self, parent=None, items=None):
         """
