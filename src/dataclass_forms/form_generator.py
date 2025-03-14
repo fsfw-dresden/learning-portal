@@ -53,6 +53,10 @@ class DataclassForm(QWidget):
                 values[field_name] = items
             elif isinstance(widget, DataclassForm):
                 values[field_name] = widget.get_value()
+            elif hasattr(widget, 'field_type') and is_dataclass(widget.field_type):
+                # For nested dataclass containers, create a default instance
+                # This is a placeholder as we don't store the actual value
+                values[field_name] = widget.field_type()
         
         return self._dataclass_type(**values)
     
@@ -87,6 +91,12 @@ class DataclassForm(QWidget):
                     widget.addItem(str(item))
             elif isinstance(widget, DataclassForm):
                 widget.set_value(field_value)
+            elif hasattr(widget, 'field_type') and is_dataclass(widget.field_type) and field_value is not None:
+                # For nested dataclass containers, update the label
+                for child in widget.children():
+                    if isinstance(child, QLabel):
+                        child.setText("(edited)")
+                        break
         
         self.valueChanged.emit()
 
@@ -218,18 +228,15 @@ class DataclassFormGenerator:
             layout.addWidget(value_label, 1)
             layout.addWidget(edit_button)
             
-            # Create the nested form
-            nested_form = DataclassFormGenerator.create_form(field_type)
+            # Store the field type for later form creation
+            container.field_type = field_type
             
             # Connect button to open dialog
             edit_button.clicked.connect(
-                lambda: DataclassFormGenerator._open_nested_form_dialog(
-                    nested_form, field_type.__name__, parent, value_label
+                lambda field_type=field_type: DataclassFormGenerator._open_nested_form_dialog(
+                    field_type, parent, value_label
                 )
             )
-            
-            # Store the nested form in the container for later access
-            container.form = nested_form
             
             return container
         
@@ -277,16 +284,19 @@ class DataclassFormGenerator:
                 list_widget.takeItem(list_widget.row(item))
     
     @staticmethod
-    def _open_nested_form_dialog(nested_form, title, parent, value_label=None):
+    def _open_nested_form_dialog(field_type, parent, value_label=None):
         """Open a dialog with the nested form."""
         dialog = QDialog(parent)
-        dialog.setWindowTitle(f"Edit {title}")
+        dialog.setWindowTitle(f"Edit {field_type.__name__}")
         dialog.setMinimumWidth(400)
         
         layout = QVBoxLayout(dialog)
         
+        # Create a new form each time the dialog is opened
+        nested_form = DataclassFormGenerator.create_form(field_type, dialog)
+        
         # Add the form to a scroll area
-        scroll = QScrollArea()
+        scroll = QScrollArea(dialog)
         scroll.setWidgetResizable(True)
         scroll.setWidget(nested_form)
         layout.addWidget(scroll)
