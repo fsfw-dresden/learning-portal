@@ -5,7 +5,7 @@ Widget for editing a list of dataclass objects.
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout, 
-    QDialog, QLabel, QScrollArea, QMessageBox
+    QDialog, QScrollArea, QMessageBox
 )
 from typing import List, Type, TypeVar, Optional, Callable
 from dataclasses import is_dataclass

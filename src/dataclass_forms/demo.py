@@ -35,6 +35,10 @@ class Course:
         metadata=FormField.text(multiline=True)
     )
     is_published: bool = False
+    progress: float = field(
+        default=0.0,
+        metadata=FormField.number(min_value=0.0, max_value=10.0)
+    )
     
     # Nested dataclass example
     main_author: Optional[Author] = None
