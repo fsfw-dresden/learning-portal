@@ -17,6 +17,7 @@ class PortalConfig(YAMLWizard):
     liascript_editor_proxy_static_url: str = "http://localhost:9000/static/"
     liascript_editor_open_command: str = "chromium --user-data-dir=$HOME/.local/share/learning-platform/chromium-profile --app="
     gitolite_publish_api_url: str = "https://api.example.com/gitolite/repo"
+    last_ssh_key_path: Optional[str] = None
 
     @classmethod
     def load(cls) -> 'PortalConfig':

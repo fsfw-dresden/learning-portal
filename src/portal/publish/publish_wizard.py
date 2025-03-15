@@ -139,13 +139,26 @@ class SSHKeyPage(QWizardPage):
             if hasattr(self.wizard(), 'ssh_keys'):
                 self.wizard().ssh_keys = ssh_keys
         
-        for key_path, _ in ssh_keys:
+        # Get the last used SSH key from config
+        from core.config import PortalConfig
+        config = PortalConfig.load()
+        last_key_path = config.last_ssh_key_path
+        last_key_index = -1
+        
+        # Add keys to dropdown
+        for i, (key_path, _) in enumerate(ssh_keys):
             self.key_combo.addItem(os.path.basename(key_path), key_path)
+            if key_path == last_key_path:
+                last_key_index = i
         
         # Set initial radio button state based on available keys
         if ssh_keys:
             self.use_existing_radio.setChecked(True)
             self.create_new_radio.setChecked(False)
+            
+            # Select the last used key if available
+            if last_key_index >= 0:
+                self.key_combo.setCurrentIndex(last_key_index)
         else:
             self.use_existing_radio.setEnabled(False)
             self.create_new_radio.setChecked(True)
@@ -243,6 +256,12 @@ class SSHKeyPage(QWizardPage):
                 if hasattr(self.wizard(), 'selected_key'):
                     self.wizard().selected_key = (pub_key_path, key_content)
                 
+                # Save the key path to config
+                from core.config import PortalConfig
+                config = PortalConfig.load()
+                config.last_ssh_key_path = pub_key_path
+                config.save()
+                
                 QMessageBox.information(
                     self,
                     tr("Success"),
@@ -282,6 +301,13 @@ class SSHKeyPage(QWizardPage):
                 if path == key_path:
                     if hasattr(self.wizard(), 'selected_key'):
                         self.wizard().selected_key = (path, content)
+                    
+                    # Save the key path to config
+                    from core.config import PortalConfig
+                    config = PortalConfig.load()
+                    config.last_ssh_key_path = path
+                    config.save()
+                    
                     return True
             
             QMessageBox.warning(
