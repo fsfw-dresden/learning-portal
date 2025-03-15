@@ -63,10 +63,12 @@ class PublishIntroPage(QWizardPage):
         if ssh_keys:
             self.ssh_key_label.setText(tr(f"Found {len(ssh_keys)} SSH key(s)"))
             # Store SSH keys in wizard field for later pages
-            self.wizard().ssh_keys = ssh_keys
+            if hasattr(self.wizard(), 'ssh_keys'):
+                self.wizard().ssh_keys = ssh_keys
         else:
             self.ssh_key_label.setText(tr("No SSH keys found. You will need to create one."))
-            self.wizard().ssh_keys = []
+            if hasattr(self.wizard(), 'ssh_keys'):
+                self.wizard().ssh_keys = []
 
 class SSHKeyPage(QWizardPage):
     """Page for managing SSH keys"""
@@ -126,7 +128,16 @@ class SSHKeyPage(QWizardPage):
         """Initialize the page when it's shown"""
         # Populate SSH key dropdown
         self.key_combo.clear()
-        ssh_keys = self.wizard().ssh_keys
+        
+        # Safely get ssh_keys from wizard
+        ssh_keys = []
+        if hasattr(self.wizard(), 'ssh_keys'):
+            ssh_keys = self.wizard().ssh_keys
+        else:
+            # If ssh_keys not available, try to get them directly
+            ssh_keys = CoursePublisher.get_ssh_public_keys()
+            if hasattr(self.wizard(), 'ssh_keys'):
+                self.wizard().ssh_keys = ssh_keys
         
         for key_path, _ in ssh_keys:
             self.key_combo.addItem(os.path.basename(key_path), key_path)
@@ -164,7 +175,14 @@ class SSHKeyPage(QWizardPage):
             return
         
         key_path = self.key_combo.currentData()
-        ssh_keys = self.wizard().ssh_keys
+        
+        # Safely get ssh_keys from wizard
+        ssh_keys = []
+        if hasattr(self.wizard(), 'ssh_keys'):
+            ssh_keys = self.wizard().ssh_keys
+        else:
+            # If ssh_keys not available, try to get them directly
+            ssh_keys = CoursePublisher.get_ssh_public_keys()
         
         # Find the key content
         key_content = ""
@@ -220,8 +238,10 @@ class SSHKeyPage(QWizardPage):
                     key_content = f.read().strip()
                 
                 # Add to the wizard's SSH keys
-                self.wizard().ssh_keys.append((pub_key_path, key_content))
-                self.wizard().selected_key = (pub_key_path, key_content)
+                if hasattr(self.wizard(), 'ssh_keys'):
+                    self.wizard().ssh_keys.append((pub_key_path, key_content))
+                if hasattr(self.wizard(), 'selected_key'):
+                    self.wizard().selected_key = (pub_key_path, key_content)
                 
                 QMessageBox.information(
                     self,
@@ -248,12 +268,20 @@ class SSHKeyPage(QWizardPage):
                 return False
             
             key_path = self.key_combo.currentData()
-            ssh_keys = self.wizard().ssh_keys
+            
+            # Safely get ssh_keys from wizard
+            ssh_keys = []
+            if hasattr(self.wizard(), 'ssh_keys'):
+                ssh_keys = self.wizard().ssh_keys
+            else:
+                # If ssh_keys not available, try to get them directly
+                ssh_keys = CoursePublisher.get_ssh_public_keys()
             
             # Find the key content
             for path, content in ssh_keys:
                 if path == key_path:
-                    self.wizard().selected_key = (path, content)
+                    if hasattr(self.wizard(), 'selected_key'):
+                        self.wizard().selected_key = (path, content)
                     return True
             
             QMessageBox.warning(
@@ -383,12 +411,19 @@ class PublishWizard(QWizard):
         self.setWindowTitle(tr("Publish Course"))
         self.setWizardStyle(QWizard.ModernStyle)
         
+        # Initialize pages
+        intro_page = PublishIntroPage(course)
+        ssh_key_page = SSHKeyPage(course)
+        repo_setup_page = RepositorySetupPage(course)
+        options_page = PublishOptionsPage(course)
+        summary_page = PublishSummaryPage(course)
+        
         # Add pages
-        self.addPage(PublishIntroPage(course))
-        self.addPage(SSHKeyPage(course))
-        self.addPage(RepositorySetupPage(course))
-        self.addPage(PublishOptionsPage(course))
-        self.addPage(PublishSummaryPage(course))
+        self.addPage(intro_page)
+        self.addPage(ssh_key_page)
+        self.addPage(repo_setup_page)
+        self.addPage(options_page)
+        self.addPage(summary_page)
         
         # Connect signals
         self.finished.connect(self.on_finished)
