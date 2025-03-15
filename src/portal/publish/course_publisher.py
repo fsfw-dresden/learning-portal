@@ -6,7 +6,7 @@ import os
 import subprocess
 import logging
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -166,3 +166,38 @@ class CoursePublisher:
         except Exception as e:
             logger.error(f"Error committing changes: {e}")
             return False
+    
+    @staticmethod
+    def get_ssh_public_keys() -> List[Tuple[str, str]]:
+        """
+        Get a list of SSH public keys for the current user.
+        
+        Returns:
+            List[Tuple[str, str]]: List of tuples containing (key_path, key_content)
+        """
+        try:
+            # Get the user's home directory
+            home_dir = Path.home()
+            ssh_dir = home_dir / ".ssh"
+            
+            if not ssh_dir.exists() or not ssh_dir.is_dir():
+                logger.warning(f"SSH directory not found: {ssh_dir}")
+                return []
+            
+            # Find all public key files (*.pub)
+            public_keys = []
+            for file_path in ssh_dir.glob("*.pub"):
+                try:
+                    # Read the key content
+                    with open(file_path, 'r') as f:
+                        key_content = f.read().strip()
+                    
+                    # Add to the list
+                    public_keys.append((str(file_path), key_content))
+                except Exception as e:
+                    logger.error(f"Error reading SSH key {file_path}: {e}")
+            
+            return public_keys
+        except Exception as e:
+            logger.error(f"Error getting SSH public keys: {e}")
+            return []
