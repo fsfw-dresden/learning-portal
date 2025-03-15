@@ -7,6 +7,7 @@ import subprocess
 import logging
 from pathlib import Path
 from typing import Tuple, Optional, List
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -201,3 +202,169 @@ class CoursePublisher:
         except Exception as e:
             logger.error(f"Error getting SSH public keys: {e}")
             return []
+    
+    @staticmethod
+    def generate_ssh_key(key_name: str) -> Tuple[bool, str, str]:
+        """
+        Generate a new SSH key pair.
+        
+        Args:
+            key_name: Name for the SSH key file
+            
+        Returns:
+            Tuple[bool, str, str]: (success, public_key_path, error_message)
+        """
+        try:
+            # Get the user's home directory
+            home_dir = Path.home()
+            ssh_dir = home_dir / ".ssh"
+            
+            # Create .ssh directory if it doesn't exist
+            if not ssh_dir.exists():
+                ssh_dir.mkdir(mode=0o700)
+            
+            # Generate key file paths
+            key_path = ssh_dir / key_name
+            pub_key_path = ssh_dir / f"{key_name}.pub"
+            
+            # Check if key already exists
+            if key_path.exists() or pub_key_path.exists():
+                return False, "", f"Key with name {key_name} already exists"
+            
+            # Generate SSH key
+            result = subprocess.run(
+                ["ssh-keygen", "-t", "ed25519", "-f", str(key_path), "-N", ""],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False
+            )
+            
+            if result.returncode != 0:
+                return False, "", f"Error generating SSH key: {result.stderr.strip()}"
+            
+            return True, str(pub_key_path), ""
+        except Exception as e:
+            logger.error(f"Error generating SSH key: {e}")
+            return False, "", f"Error generating SSH key: {str(e)}"
+    
+    @staticmethod
+    def create_remote_repository(ssh_pubkey: str, unit_name: str, username: str) -> Tuple[bool, str, str]:
+        """
+        Create a remote repository using the gitolite API.
+        
+        Args:
+            ssh_pubkey: SSH public key content
+            unit_name: Name of the unit/repository
+            username: Username for the repository
+            
+        Returns:
+            Tuple[bool, str, str]: (success, repo_url, error_message)
+        """
+        try:
+            import requests
+            from core.config import PortalConfig
+            
+            config = PortalConfig.load()
+            api_url = config.gitolite_publish_api_url
+            
+            # Prepare request data
+            data = {
+                "ssh_pubkey": ssh_pubkey,
+                "unit_name": unit_name,
+                "username": username
+            }
+            
+            # Send request to create repository
+            response = requests.put(api_url, json=data)
+            
+            if response.status_code != 200:
+                return False, "", f"Error creating repository: {response.text}"
+            
+            # Parse response
+            result = response.json()
+            repo_url = result.get("repo_url", "")
+            message = result.get("message", "")
+            
+            if not repo_url:
+                return False, "", f"No repository URL returned: {message}"
+            
+            return True, repo_url, message
+        except Exception as e:
+            logger.error(f"Error creating remote repository: {e}")
+            return False, "", f"Error creating remote repository: {str(e)}"
+    
+    @staticmethod
+    def setup_git_remote(directory: Path, remote_url: str) -> bool:
+        """
+        Set up a git remote for the repository.
+        
+        Args:
+            directory: Path to the git repository
+            remote_url: URL of the remote repository
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Check if remote already exists
+            result = subprocess.run(
+                ["git", "-C", str(directory), "remote"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False
+            )
+            
+            if "origin" in result.stdout.split():
+                # Remove existing origin remote
+                subprocess.run(
+                    ["git", "-C", str(directory), "remote", "remove", "origin"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False
+                )
+            
+            # Add new origin remote
+            result = subprocess.run(
+                ["git", "-C", str(directory), "remote", "add", "origin", remote_url],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False
+            )
+            
+            return result.returncode == 0
+        except Exception as e:
+            logger.error(f"Error setting up git remote: {e}")
+            return False
+    
+    @staticmethod
+    def push_to_remote(directory: Path, branch: str = "main") -> Tuple[bool, str]:
+        """
+        Push changes to the remote repository.
+        
+        Args:
+            directory: Path to the git repository
+            branch: Branch to push
+            
+        Returns:
+            Tuple[bool, str]: (success, error_message)
+        """
+        try:
+            # Push to remote
+            result = subprocess.run(
+                ["git", "-C", str(directory), "push", "-u", "origin", branch],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False
+            )
+            
+            if result.returncode != 0:
+                return False, result.stderr.strip()
+            
+            return True, ""
+        except Exception as e:
+            logger.error(f"Error pushing to remote: {e}")
+            return False, str(e)
