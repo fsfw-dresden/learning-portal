@@ -116,6 +116,7 @@ class SSHKeyPage(QWizardPage):
         self.use_existing_radio.toggled.connect(self.update_key_ui)
         self.create_new_radio.toggled.connect(self.update_key_ui)
         self.view_key_button.clicked.connect(self.view_selected_key)
+        self.key_combo.currentIndexChanged.connect(self.on_key_selected)
         
         # Register fields
         self.registerField("use_existing_key", self.use_existing_radio)
@@ -146,10 +147,13 @@ class SSHKeyPage(QWizardPage):
         last_key_index = -1
         
         # Add keys to dropdown
-        for i, (key_path, _) in enumerate(ssh_keys):
+        for i, (key_path, content) in enumerate(ssh_keys):
             self.key_combo.addItem(os.path.basename(key_path), key_path)
             if key_path == last_key_path:
                 last_key_index = i
+                # Pre-select this key in the wizard
+                if hasattr(self.wizard(), 'selected_key'):
+                    self.wizard().selected_key = (key_path, content)
         
         # Set initial radio button state based on available keys
         if ssh_keys:
@@ -159,6 +163,12 @@ class SSHKeyPage(QWizardPage):
             # Select the last used key if available
             if last_key_index >= 0:
                 self.key_combo.setCurrentIndex(last_key_index)
+            elif len(ssh_keys) > 0:
+                # If no last key but we have keys, select the first one
+                self.key_combo.setCurrentIndex(0)
+                key_path, content = ssh_keys[0]
+                if hasattr(self.wizard(), 'selected_key'):
+                    self.wizard().selected_key = (key_path, content)
         else:
             self.use_existing_radio.setEnabled(False)
             self.create_new_radio.setChecked(True)
@@ -177,10 +187,49 @@ class SSHKeyPage(QWizardPage):
         # Update required fields
         if use_existing:
             self.key_name_input.setText("")
+            
+            # Update selected key when radio button changes
+            if self.key_combo.currentIndex() >= 0:
+                key_path = self.key_combo.currentData()
+                
+                # Find the key content
+                ssh_keys = []
+                if hasattr(self.wizard(), 'ssh_keys'):
+                    ssh_keys = self.wizard().ssh_keys
+                else:
+                    ssh_keys = CoursePublisher.get_ssh_public_keys()
+                
+                for path, content in ssh_keys:
+                    if path == key_path:
+                        if hasattr(self.wizard(), 'selected_key'):
+                            self.wizard().selected_key = (path, content)
+                        break
         else:
             # Suggest a default key name
             if not self.key_name_input.text():
                 self.key_name_input.setText(f"id_ed25519_{self.course.title.lower().replace(' ', '_')}")
+    
+    def on_key_selected(self, index):
+        """Handle selection of a key from the dropdown"""
+        if index < 0:
+            return
+            
+        key_path = self.key_combo.currentData()
+        
+        # Safely get ssh_keys from wizard
+        ssh_keys = []
+        if hasattr(self.wizard(), 'ssh_keys'):
+            ssh_keys = self.wizard().ssh_keys
+        else:
+            # If ssh_keys not available, try to get them directly
+            ssh_keys = CoursePublisher.get_ssh_public_keys()
+        
+        # Find the key content and update selected_key
+        for path, content in ssh_keys:
+            if path == key_path:
+                if hasattr(self.wizard(), 'selected_key'):
+                    self.wizard().selected_key = (path, content)
+                break
     
     def view_selected_key(self):
         """Show the selected SSH key content"""
@@ -297,6 +346,7 @@ class SSHKeyPage(QWizardPage):
                 ssh_keys = CoursePublisher.get_ssh_public_keys()
             
             # Find the key content
+            key_found = False
             for path, content in ssh_keys:
                 if path == key_path:
                     if hasattr(self.wizard(), 'selected_key'):
@@ -308,14 +358,18 @@ class SSHKeyPage(QWizardPage):
                     config.last_ssh_key_path = path
                     config.save()
                     
-                    return True
+                    key_found = True
+                    break
             
-            QMessageBox.warning(
-                self,
-                tr("Error"),
-                tr("Selected SSH key not found")
-            )
-            return False
+            if not key_found:
+                QMessageBox.warning(
+                    self,
+                    tr("Error"),
+                    tr("Selected SSH key not found")
+                )
+                return False
+            
+            return True
 
 class RepositorySetupPage(QWizardPage):
     """Page for setting up the repository"""
@@ -397,6 +451,9 @@ class PublishSummaryPage(QWizardPage):
         self.summary_label = QLabel()
         self.summary_label.setWordWrap(True)
         layout.addWidget(self.summary_label)
+        
+        # Register a dummy field to make the page complete
+        self.registerField("summary_complete", self.summary_label)
     
     def initializePage(self):
         """Initialize the page when it's shown"""
@@ -406,7 +463,7 @@ class PublishSummaryPage(QWizardPage):
         
         # Get SSH key info
         key_path = ""
-        if hasattr(self.wizard(), "selected_key"):
+        if hasattr(self.wizard(), "selected_key") and self.wizard().selected_key:
             key_path = self.wizard().selected_key[0]
         
         # Get repository info
@@ -421,6 +478,10 @@ class PublishSummaryPage(QWizardPage):
         summary += tr(f"Push to Remote: {'Yes' if push_to_remote else 'No'}")
         
         self.summary_label.setText(summary)
+    
+    def isComplete(self) -> bool:
+        """Always return True to enable the Finish button"""
+        return True
 
 class PublishWizard(QWizard):
     """Wizard for publishing courses to git repositories"""
