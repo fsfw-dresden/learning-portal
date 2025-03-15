@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from core.models import Course, CourseMetadata
-from src.dataclass_forms.form_generator import DataclassFormGenerator
+from dataclass_forms.form_generator import DataclassFormGenerator
 
 def tr(text: str) -> str:
     """Helper function for translations"""

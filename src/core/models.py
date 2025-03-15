@@ -143,10 +143,9 @@ class Lesson(BaseLesson):
 class CourseMetadata(YAMLWizard):
     """Serializable metadata for courses"""
     title: str
-    collection_name: str
+    collection_name: str = field(default="", metadata={"form_field": {"hidden": True}})
     description: Optional[str] = field(default=None, metadata={"form_field": {"multiline": True, "placeholder": "Enter course description"}})
     preview_image: Optional[str] = None
-    internal_id: Optional[str] = field(default=None, metadata={"form_field": {"hidden": True}})
 
 @dataclass
 class Course:
