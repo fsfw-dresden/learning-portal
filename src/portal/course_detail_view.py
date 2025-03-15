@@ -9,6 +9,8 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                             QButtonGroup, QRadioButton, QInputDialog,
                             QToolButton, QFileDialog, QMessageBox)
 from portal.course_editor_dialog import CourseEditorDialog
+from portal.publish.course_publisher import CoursePublisher
+from portal.publish.publish_wizard import PublishWizard
 from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 from core.models import BaseLesson, LessonMetadata, Lesson, Course
@@ -144,12 +146,20 @@ class CourseDetailView(QWidget):
     def initUI(self):
         layout = QVBoxLayout(self)
         
-        # Header with back button
+        # Header with back button and publish status
         header_layout = QHBoxLayout()
         self.back_button = QPushButton("← Back to Courses")
         self.back_button.clicked.connect(self.back_clicked.emit)
         header_layout.addWidget(self.back_button)
         header_layout.addStretch()
+        
+        # Publish status button (only visible if writable)
+        self.publish_status_button = QPushButton()
+        self.publish_status_button.setFixedSize(120, 30)
+        self.publish_status_button.clicked.connect(self.open_publish_wizard)
+        self.publish_status_button.setVisible(self.writable)
+        header_layout.addWidget(self.publish_status_button)
+        
         layout.addLayout(header_layout)
         
         # Course information section
@@ -258,6 +268,11 @@ class CourseDetailView(QWidget):
         self.writable = writable
         self.edit_title_button.setVisible(writable)
         self.image_widget.setEditVisible(writable)
+        self.publish_status_button.setVisible(writable)
+        
+        # Update publish status if writable
+        if writable and self.course and self.course.course_path:
+            self.update_publish_status()
     
     def edit_course_title(self):
         """Open a dialog to edit the course details"""
@@ -334,6 +349,63 @@ class CourseDetailView(QWidget):
         else:  # Card view selected
             self.lessons_stack.setCurrentIndex(1)
         
+    def update_publish_status(self):
+        """Update the publish status button based on git status"""
+        if not self.course or not self.course.course_path:
+            self.publish_status_button.setText(tr("Not Published"))
+            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: white;")
+            return
+            
+        is_git_repo = CoursePublisher.is_git_repository(self.course.course_path)
+        
+        if not is_git_repo:
+            self.publish_status_button.setText(tr("Not Published"))
+            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: white;")
+            return
+            
+        is_clean, status_msg = CoursePublisher.get_git_status(self.course.course_path)
+        
+        if is_clean and "up to date" in status_msg:
+            self.publish_status_button.setText(tr("Published"))
+            self.publish_status_button.setStyleSheet("background-color: #51cf66; color: white;")
+        elif is_clean and "no commits" in status_msg:
+            self.publish_status_button.setText(tr("Not Published"))
+            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: white;")
+        else:
+            self.publish_status_button.setText(tr("Needs Update"))
+            self.publish_status_button.setStyleSheet("background-color: #fcc419; color: white;")
+    
+    def open_publish_wizard(self):
+        """Open the publish wizard for the current course"""
+        if not self.course or not self.course.course_path:
+            QMessageBox.warning(
+                self,
+                tr("Cannot Publish"),
+                tr("Course path is not set.")
+            )
+            return
+            
+        wizard = PublishWizard(self.course, self)
+        wizard.publish_completed.connect(self.on_publish_completed)
+        wizard.exec_()
+    
+    def on_publish_completed(self, success, message):
+        """Handle publish completion"""
+        if success:
+            QMessageBox.information(
+                self,
+                tr("Publish Successful"),
+                message
+            )
+            # Update status after publishing
+            self.update_publish_status()
+        else:
+            QMessageBox.warning(
+                self,
+                tr("Publish Failed"),
+                message
+            )
+    
     def set_course(self, course: Course):
         """Update the view with course information"""
         self.course = course
@@ -345,6 +417,10 @@ class CourseDetailView(QWidget):
         
         # Set collection name
         self.collection_label.setText(f"Collection: {course.collection_name}")
+        
+        # Update publish status if writable
+        if self.writable and course.course_path:
+            self.update_publish_status()
         
         # Set image if available
         if course.preview_path:
