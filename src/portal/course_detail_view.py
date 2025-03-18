@@ -78,14 +78,14 @@ class ImageWithEditButton(QWidget):
         self.edit_button.clicked.connect(self.edit_clicked.emit)
         self.edit_button.setStyleSheet("""
             QToolButton {
-                background-color: rgba(40, 40, 40, 0.9);
+                background-color: palette(highlight);
                 border-radius: 12px;
                 padding: 4px;
-                color: white;
+                color: palette(highlighted-text);
             }
             QToolButton:hover {
-                background-color: rgba(0, 0, 0, 1.0);
-                border: 1px solid white;
+                background-color: palette(dark);
+                border: 1px solid palette(highlighted-text);
             }
         """)
         self.edit_button.setIconSize(QSize(16, 16))
@@ -187,14 +187,13 @@ class CourseDetailView(QWidget):
         
         self.description_label = QLabel()
         self.description_label.setWordWrap(True)
-        self.description_label.setStyleSheet("color: #555;")
+        self.description_label.setStyleSheet("color: palette(mid);")
         course_info.addWidget(self.description_label)
         
         # Collection name
         self.collection_label = QLabel()
-        self.collection_label.setStyleSheet("color: #777; font-style: italic;")
+        self.collection_label.setStyleSheet("color: palette(dark); font-style: italic;")
         course_info.addWidget(self.collection_label)
-        
         course_info.addStretch()
         
         # Left side - course info
