@@ -818,13 +818,6 @@ class PublishWizard(QWizard):
             # Get field values
             commit_message = self.field("commit_message")
             push_to_remote = self.field("push_to_remote")
-            username = self.field("username")
-            repo_name = self.field("repo_name")
-            
-            # Get the remote URL from the options page
-            remote_url = self.field("remote_url") if self.hasField("remote_url") else None
-            if remote_url:
-                self.repo_url = remote_url
             
             # Check if directory is a git repository
             is_git_repo = CoursePublisher.is_git_repository(self.course.course_path)
@@ -840,15 +833,12 @@ class PublishWizard(QWizard):
             success = CoursePublisher.commit_changes(self.course.course_path, commit_message)
             if not success:
                 logger.error(f"Failed to commit changes: {self.course.course_path}")
-                #self.publish_completed.emit(False, tr("Failed to commit changes"))
             
             if push_to_remote:
                 # Get SSH key content
                 if not self.selected_key:
                     self.publish_completed.emit(False, tr("No SSH key selected"))
                     return
-                
-                _, key_content = self.selected_key
                 
                 # Check if remote already exists
                 existing_remote = CoursePublisher.get_remote_url(self.course.course_path)
