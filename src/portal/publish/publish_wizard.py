@@ -6,10 +6,9 @@ from PyQt5.QtWidgets import (
     QWizard, QWizardPage, QVBoxLayout, QLabel, QLineEdit, 
     QCheckBox, QPushButton, QHBoxLayout, QMessageBox,
     QComboBox, QRadioButton, QButtonGroup, QGroupBox,
-    QDialog, QFileDialog, QTextEdit
+    QDialog, QTextEdit, QProgressBar
 )
-from PyQt5.QtCore import Qt, pyqtSignal
-from pathlib import Path
+from PyQt5.QtCore import pyqtSignal, QThread
 import logging
 import os
 
@@ -99,6 +98,35 @@ class PublishIntroPage(QWizardPage):
         """Handle quick publish button click"""
         wizard = self.wizard()
         
+        # Disable the button immediately
+        self.quick_publish_button.setEnabled(False)
+        self.quick_publish_button.setText(tr("Publishing..."))
+        
+        # Create progress dialog
+        progress_dialog = QDialog(self)
+        progress_dialog.setWindowTitle(tr("Publishing Course"))
+        progress_dialog.setMinimumWidth(400)
+        progress_dialog.setModal(True)
+        
+        dialog_layout = QVBoxLayout(progress_dialog)
+        
+        # Status label
+        status_label = QLabel(tr("Preparing to publish..."))
+        status_label.setWordWrap(True)
+        dialog_layout.addWidget(status_label)
+        
+        # Progress bar (indeterminate)
+        progress_bar = QProgressBar()
+        progress_bar.setRange(0, 0)  # Indeterminate
+        dialog_layout.addWidget(progress_bar)
+        
+        # Abort button
+        button_layout = QHBoxLayout()
+        abort_button = QPushButton(tr("Abort"))
+        button_layout.addStretch()
+        button_layout.addWidget(abort_button)
+        dialog_layout.addLayout(button_layout)
+        
         # 1. Check/create SSH key
         ssh_keys = []
         if hasattr(wizard, 'ssh_keys'):
@@ -126,16 +154,23 @@ class PublishIntroPage(QWizardPage):
         
         # If no keys exist, generate one
         if not key_path:
+            status_label.setText(tr("Generating SSH key..."))
+            progress_dialog.show()
+            QApplication.processEvents()
+            
             # Generate default key name based on course
             key_name = f"id_ed25519_{self.course.title.lower().replace(' ', '_')}"
             success, pub_key_path, error = CoursePublisher.generate_ssh_key(key_name)
             
             if not success:
+                progress_dialog.close()
                 QMessageBox.warning(
                     self,
                     tr("Error"),
                     tr(f"Failed to generate SSH key: {error}")
                 )
+                self.quick_publish_button.setEnabled(True)
+                self.quick_publish_button.setText(tr("Quick Publish"))
                 return
             
             # Read the generated public key
@@ -149,11 +184,14 @@ class PublishIntroPage(QWizardPage):
                 preferences.course_publish.default_ssh_pubkey = pub_key_path
                 preferences.save()
             except Exception as e:
+                progress_dialog.close()
                 QMessageBox.warning(
                     self,
                     tr("Error"),
                     tr(f"Failed to read generated SSH key: {str(e)}")
                 )
+                self.quick_publish_button.setEnabled(True)
+                self.quick_publish_button.setText(tr("Quick Publish"))
                 return
         
         # Store the selected key
@@ -164,84 +202,52 @@ class PublishIntroPage(QWizardPage):
         username = os.environ.get('USER', '')
         repo_name = self.course.title.lower().replace(' ', '-')
         
-        # 3. Set default commit message
-        commit_message = tr(f"Update course: {self.course.title}")
+        # Create and start the worker thread
+        self.publish_worker = PublishWorker(
+            self.course, key_path, key_content, username, repo_name
+        )
         
-        # 4. Check if directory is a git repository
-        is_git_repo = CoursePublisher.is_git_repository(self.course.course_path)
+        # Connect signals
+        self.publish_worker.progress_update.connect(status_label.setText)
+        self.publish_worker.operation_complete.connect(self.on_publish_complete)
+        abort_button.clicked.connect(self.publish_worker.abort)
         
-        if not is_git_repo:
-            # Initialize git repository
-            success = CoursePublisher.init_git_repository(self.course.course_path)
-            if not success:
-                QMessageBox.warning(
-                    self,
-                    tr("Error"),
-                    tr("Failed to initialize git repository")
-                )
-                return
+        # Show dialog and start worker
+        progress_dialog.show()
+        self.progress_dialog = progress_dialog  # Store reference to prevent garbage collection
+        self.publish_worker.start()
+
+    def on_publish_complete(self, success, message, repo_url):
+        """Handle completion of the publish operation"""
+        # Close the progress dialog
+        if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            self.progress_dialog.close()
         
-        # 5. Commit changes
-        success = CoursePublisher.commit_changes(self.course.course_path, commit_message)
-        if not success:
-            logger.error(f"Failed to commit changes: {self.course.course_path}")
-            # Continue anyway, as there might be no changes to commit
+        # Re-enable the button
+        self.quick_publish_button.setEnabled(True)
+        self.quick_publish_button.setText(tr("Quick Publish"))
         
-        # 6. Create remote repository if needed
-        repo_url = None
-        
-        # Check if remote already exists
-        existing_remote = CoursePublisher.get_remote_url(self.course.course_path)
-        if existing_remote:
-            repo_url = existing_remote
-        else:
-            success, new_repo_url, message = CoursePublisher.create_remote_repository(
-                key_content, repo_name, username
+        # Show result message
+        if success:
+            QMessageBox.information(
+                self,
+                tr("Success"),
+                tr(f"Course published successfully to {repo_url}")
             )
             
-            if not success:
-                QMessageBox.warning(
-                    self,
-                    tr("Error"),
-                    tr(f"Failed to create repository: {message}")
-                )
-                return
+            # Emit the publish_completed signal
+            wizard = self.wizard()
+            if hasattr(wizard, 'publish_completed'):
+                wizard.publish_completed.emit(True, tr(f"Course published successfully to {repo_url}"))
             
-            repo_url = new_repo_url
-            
-            # Set up git remote
-            success = CoursePublisher.setup_git_remote(self.course.course_path, repo_url)
-            if not success:
-                QMessageBox.warning(
-                    self,
-                    tr("Error"),
-                    tr("Failed to set up git remote")
-                )
-                return
-        
-        # 7. Push to remote
-        success, error = CoursePublisher.push_to_remote(self.course.course_path)
-        if not success:
+            # Close the wizard
+            wizard.accept()
+        else:
             QMessageBox.warning(
                 self,
                 tr("Error"),
-                tr(f"Failed to push to remote: {error}")
+                message
             )
-            return
-        
-        # 8. Show success message and emit signal
-        QMessageBox.information(
-            self,
-            tr("Success"),
-            tr(f"Course published successfully to {repo_url}")
-        )
-        
-        # Emit the publish_completed signal
-        if hasattr(wizard, 'publish_completed'):
-            wizard.publish_completed.emit(True, tr(f"Course published successfully to {repo_url}"))
-        
-        # Close the wizard
-        wizard.accept()
 
 class SSHKeyPage(QWizardPage):
     """Page for managing SSH keys"""
@@ -775,6 +781,112 @@ class PublishSummaryPage(QWizardPage):
     def isComplete(self) -> bool:
         """Always return True to enable the Finish button"""
         return True
+
+# Add this new class for the background worker
+class PublishWorker(QThread):
+    """Worker thread for publishing courses in the background"""
+    
+    # Signals for progress updates and completion
+    progress_update = pyqtSignal(str)
+    operation_complete = pyqtSignal(bool, str, str)  # Success, message, repo_url
+    
+    def __init__(self, course, key_path, key_content, username, repo_name):
+        super().__init__()
+        self.course = course
+        self.key_path = key_path
+        self.key_content = key_content
+        self.username = username
+        self.repo_name = repo_name
+        self.abort_requested = False
+    
+    def run(self):
+        """Run the publishing process in a background thread"""
+        try:
+            # 1. Set default commit message
+            commit_message = tr(f"Update course: {self.course.title}")
+            
+            # 2. Check if directory is a git repository
+            self.progress_update.emit(tr("Checking git repository..."))
+            is_git_repo = CoursePublisher.is_git_repository(self.course.course_path)
+            
+            if not is_git_repo:
+                # Initialize git repository
+                self.progress_update.emit(tr("Initializing git repository..."))
+                success = CoursePublisher.init_git_repository(self.course.course_path)
+                if not success:
+                    self.operation_complete.emit(False, tr("Failed to initialize git repository"), "")
+                    return
+            
+            if self.abort_requested:
+                self.operation_complete.emit(False, tr("Operation aborted"), "")
+                return
+                
+            # 3. Commit changes
+            self.progress_update.emit(tr("Committing changes..."))
+            success = CoursePublisher.commit_changes(self.course.course_path, commit_message)
+            if not success:
+                logger.error(f"Failed to commit changes: {self.course.course_path}")
+                # Continue anyway, as there might be no changes to commit
+            
+            if self.abort_requested:
+                self.operation_complete.emit(False, tr("Operation aborted"), "")
+                return
+                
+            # 4. Create remote repository if needed
+            repo_url = None
+            
+            # Check if remote already exists
+            self.progress_update.emit(tr("Checking for existing remote..."))
+            existing_remote = CoursePublisher.get_remote_url(self.course.course_path)
+            if existing_remote:
+                repo_url = existing_remote
+                self.progress_update.emit(tr("Using existing remote repository"))
+            else:
+                self.progress_update.emit(tr("Creating remote repository..."))
+                success, new_repo_url, message = CoursePublisher.create_remote_repository(
+                    self.key_content, self.repo_name, self.username
+                )
+                
+                if not success:
+                    self.operation_complete.emit(False, tr(f"Failed to create repository: {message}"), "")
+                    return
+                
+                repo_url = new_repo_url
+                
+                if self.abort_requested:
+                    self.operation_complete.emit(False, tr("Operation aborted"), "")
+                    return
+                    
+                # Set up git remote
+                self.progress_update.emit(tr("Setting up git remote..."))
+                success = CoursePublisher.setup_git_remote(self.course.course_path, repo_url)
+                if not success:
+                    self.operation_complete.emit(False, tr("Failed to set up git remote"), "")
+                    return
+            
+            if self.abort_requested:
+                self.operation_complete.emit(False, tr("Operation aborted"), "")
+                return
+                
+            # 5. Push to remote
+            self.progress_update.emit(tr("Pushing to remote repository..."))
+            success, error = CoursePublisher.push_to_remote(self.course.course_path)
+            if not success:
+                self.operation_complete.emit(False, tr(f"Failed to push to remote: {error}"), "")
+                return
+            
+            # 6. Complete
+            self.progress_update.emit(tr("Publish completed successfully!"))
+            self.operation_complete.emit(True, tr(f"Course published successfully to {repo_url}"), repo_url)
+            
+        except Exception as e:
+            logger.error(f"Error in publish worker: {str(e)}")
+            self.operation_complete.emit(False, tr(f"Error during publishing: {str(e)}"), "")
+    
+    def abort(self):
+        """Request abortion of the operation"""
+        self.abort_requested = True
+        self.progress_update.emit(tr("Aborting operation..."))
 
 class PublishWizard(QWizard):
     """Wizard for publishing courses to git repositories"""
