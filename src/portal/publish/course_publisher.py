@@ -368,3 +368,40 @@ class CoursePublisher:
         except Exception as e:
             logger.error(f"Error pushing to remote: {e}")
             return False, str(e)
+    
+    @staticmethod
+    def get_remote_url(directory: Path) -> Optional[str]:
+        """
+        Get the URL of the 'origin' remote for a git repository.
+        
+        Args:
+            directory: Path to the git repository
+            
+        Returns:
+            Optional[str]: The URL of the 'origin' remote, or None if not found
+        """
+        if not CoursePublisher.is_git_repository(directory):
+            return None
+            
+        try:
+            # Get the remote URL
+            result = subprocess.run(
+                ["git", "-C", str(directory), "remote", "get-url", "origin"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False
+            )
+            
+            if result.returncode != 0:
+                # No remote or other error
+                return None
+                
+            remote_url = result.stdout.strip()
+            if remote_url:
+                return remote_url
+            
+            return None
+        except Exception as e:
+            logger.error(f"Error getting remote URL: {e}")
+            return None
