@@ -352,27 +352,27 @@ class CourseDetailView(QWidget):
         """Update the publish status button based on git status"""
         if not self.course or not self.course.course_path:
             self.publish_status_button.setText(tr("Not Published"))
-            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: white;")
+            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: black;")
             return
             
         is_git_repo = CoursePublisher.is_git_repository(self.course.course_path)
         
         if not is_git_repo:
             self.publish_status_button.setText(tr("Not Published"))
-            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: white;")
+            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: black;")
             return
             
         is_clean, status_msg = CoursePublisher.get_git_status(self.course.course_path)
         
         if is_clean and "up to date" in status_msg:
             self.publish_status_button.setText(tr("Published"))
-            self.publish_status_button.setStyleSheet("background-color: #51cf66; color: white;")
+            self.publish_status_button.setStyleSheet("background-color: #51cf66; color: black;")
         elif is_clean and "no commits" in status_msg:
             self.publish_status_button.setText(tr("Not Published"))
-            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: white;")
+            self.publish_status_button.setStyleSheet("background-color: #ff6b6b; color: black;")
         else:
             self.publish_status_button.setText(tr("Needs Update"))
-            self.publish_status_button.setStyleSheet("background-color: #fcc419; color: white;")
+            self.publish_status_button.setStyleSheet("background-color: #fcc419; color: black;")
     
     def open_publish_wizard(self):
         """Open the publish wizard for the current course"""
