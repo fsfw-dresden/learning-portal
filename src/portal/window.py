@@ -84,7 +84,7 @@ class PortalWindow(QMainWindow):
         self.stacked_widget.addWidget(self.unit_browser)
         
         # Set unit finder as default view
-        self.stacked_widget.setCurrentWidget(self.unit_finder)
+        self.stacked_widget.setCurrentWidget(self.unit_browser)
         
     def show_wizard(self):
         wizard = WelcomeWizard()
