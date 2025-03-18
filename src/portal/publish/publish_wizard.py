@@ -46,6 +46,31 @@ class PublishIntroPage(QWizardPage):
         self.ssh_key_label = QLabel()
         layout.addWidget(self.ssh_key_label)
         
+        # Add explanation about simplified vs extended publish
+        explanation = QLabel(tr("You can choose between:"))
+        explanation.setWordWrap(True)
+        layout.addWidget(explanation)
+        
+        # Quick publish option
+        quick_publish_info = QLabel(tr("• Quick Publish: Immediately publish with default settings"))
+        quick_publish_info.setWordWrap(True)
+        layout.addWidget(quick_publish_info)
+        
+        # Extended publish option
+        extended_publish_info = QLabel(tr("• Extended Publish: Configure all publishing options step by step"))
+        extended_publish_info.setWordWrap(True)
+        layout.addWidget(extended_publish_info)
+        
+        # Add spacer
+        layout.addSpacing(20)
+        
+        # Quick publish button
+        self.quick_publish_button = QPushButton(tr("Quick Publish"))
+        self.quick_publish_button.setMinimumHeight(50)  # Make the button bigger
+        self.quick_publish_button.setStyleSheet("font-weight: bold;")
+        self.quick_publish_button.clicked.connect(self.on_quick_publish)
+        layout.addWidget(self.quick_publish_button)
+        
         # Update status when page is shown
         self.initializePage()
     
@@ -69,6 +94,154 @@ class PublishIntroPage(QWizardPage):
             self.ssh_key_label.setText(tr("No SSH keys found. You will need to create one."))
             if hasattr(self.wizard(), 'ssh_keys'):
                 self.wizard().ssh_keys = []
+    
+    def on_quick_publish(self):
+        """Handle quick publish button click"""
+        wizard = self.wizard()
+        
+        # 1. Check/create SSH key
+        ssh_keys = []
+        if hasattr(wizard, 'ssh_keys'):
+            ssh_keys = wizard.ssh_keys
+        
+        # Get the preferred SSH key from config
+        from core.preferences import Preferences
+        preferences = Preferences.load()
+        preferred_key_path = preferences.course_publish.default_ssh_pubkey
+        
+        key_path = None
+        key_content = None
+        
+        if ssh_keys:
+            # Try to use preferred key first
+            for path, content in ssh_keys:
+                if path == preferred_key_path:
+                    key_path = path
+                    key_content = content
+                    break
+            
+            # If no preferred key found, use the first one
+            if not key_path and ssh_keys:
+                key_path, key_content = ssh_keys[0]
+        
+        # If no keys exist, generate one
+        if not key_path:
+            # Generate default key name based on course
+            key_name = f"id_ed25519_{self.course.title.lower().replace(' ', '_')}"
+            success, pub_key_path, error = CoursePublisher.generate_ssh_key(key_name)
+            
+            if not success:
+                QMessageBox.warning(
+                    self,
+                    tr("Error"),
+                    tr(f"Failed to generate SSH key: {error}")
+                )
+                return
+            
+            # Read the generated public key
+            try:
+                with open(pub_key_path, 'r') as f:
+                    key_content = f.read().strip()
+                
+                key_path = pub_key_path
+                
+                # Save as preferred key
+                preferences.course_publish.default_ssh_pubkey = pub_key_path
+                preferences.save()
+            except Exception as e:
+                QMessageBox.warning(
+                    self,
+                    tr("Error"),
+                    tr(f"Failed to read generated SSH key: {str(e)}")
+                )
+                return
+        
+        # Store the selected key
+        if hasattr(wizard, 'selected_key'):
+            wizard.selected_key = (key_path, key_content)
+        
+        # 2. Set default repository info
+        username = os.environ.get('USER', '')
+        repo_name = self.course.title.lower().replace(' ', '-')
+        
+        # 3. Set default commit message
+        commit_message = tr(f"Update course: {self.course.title}")
+        
+        # 4. Check if directory is a git repository
+        is_git_repo = CoursePublisher.is_git_repository(self.course.course_path)
+        
+        if not is_git_repo:
+            # Initialize git repository
+            success = CoursePublisher.init_git_repository(self.course.course_path)
+            if not success:
+                QMessageBox.warning(
+                    self,
+                    tr("Error"),
+                    tr("Failed to initialize git repository")
+                )
+                return
+        
+        # 5. Commit changes
+        success = CoursePublisher.commit_changes(self.course.course_path, commit_message)
+        if not success:
+            logger.error(f"Failed to commit changes: {self.course.course_path}")
+            # Continue anyway, as there might be no changes to commit
+        
+        # 6. Create remote repository if needed
+        repo_url = None
+        
+        # Check if remote already exists
+        existing_remote = CoursePublisher.get_remote_url(self.course.course_path)
+        if existing_remote:
+            repo_url = existing_remote
+        else:
+            success, new_repo_url, message = CoursePublisher.create_remote_repository(
+                key_content, repo_name, username
+            )
+            
+            if not success:
+                QMessageBox.warning(
+                    self,
+                    tr("Error"),
+                    tr(f"Failed to create repository: {message}")
+                )
+                return
+            
+            repo_url = new_repo_url
+            
+            # Set up git remote
+            success = CoursePublisher.setup_git_remote(self.course.course_path, repo_url)
+            if not success:
+                QMessageBox.warning(
+                    self,
+                    tr("Error"),
+                    tr("Failed to set up git remote")
+                )
+                return
+        
+        # 7. Push to remote
+        success, error = CoursePublisher.push_to_remote(self.course.course_path)
+        if not success:
+            QMessageBox.warning(
+                self,
+                tr("Error"),
+                tr(f"Failed to push to remote: {error}")
+            )
+            return
+        
+        # 8. Show success message and emit signal
+        QMessageBox.information(
+            self,
+            tr("Success"),
+            tr(f"Course published successfully to {repo_url}")
+        )
+        
+        # Emit the publish_completed signal
+        if hasattr(wizard, 'publish_completed'):
+            wizard.publish_completed.emit(True, tr(f"Course published successfully to {repo_url}"))
+        
+        # Close the wizard
+        wizard.accept()
 
 class SSHKeyPage(QWizardPage):
     """Page for managing SSH keys"""
