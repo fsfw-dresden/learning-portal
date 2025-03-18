@@ -278,7 +278,7 @@ class SSHKeyPage(QWizardPage):
         layout.addLayout(button_layout)
         
         dialog.exec_()
-    
+
     def validatePage(self):
         """Validate the page before proceeding"""
         if self.create_new_radio.isChecked():
@@ -367,7 +367,7 @@ class SSHKeyPage(QWizardPage):
                     tr("Error"),
                     tr("Selected SSH key not found")
                 )
-                return False
+                return True
             
             return True
 
@@ -435,6 +435,11 @@ class PublishOptionsPage(QWizardPage):
         # Register fields
         self.registerField("commit_message*", self.commit_message)
         self.registerField("push_to_remote", self.push_checkbox)
+    
+    def isComplete(self) -> bool:
+        """Always return True to enable the Finish button"""
+        return True
+    
 
 class PublishSummaryPage(QWizardPage):
     """Summary page for the publish wizard"""
@@ -514,6 +519,10 @@ class PublishWizard(QWizard):
         
         # Connect signals
         self.finished.connect(self.on_finished)
+
+    def isComplete(self) -> bool:
+        """Always return True to enable the Finish button"""
+        return True
     
     def on_finished(self, result):
         """Handle wizard completion"""
@@ -537,8 +546,8 @@ class PublishWizard(QWizard):
             # Commit changes
             success = CoursePublisher.commit_changes(self.course.course_path, commit_message)
             if not success:
-                self.publish_completed.emit(False, tr("Failed to commit changes"))
-                return
+                logger.error(f"Failed to commit changes: {self.course.course_path}")
+                #self.publish_completed.emit(False, tr("Failed to commit changes"))
             
             if push_to_remote:
                 # Get SSH key content

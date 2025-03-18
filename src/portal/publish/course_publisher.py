@@ -276,7 +276,7 @@ class CoursePublisher:
             }
             
             # Send request to create repository
-            response = requests.put(api_url, json=data)
+            response = requests.put(api_url + "/gitolite/repo", json=data)
             
             if response.status_code != 200:
                 return False, "", f"Error creating repository: {response.text}"
