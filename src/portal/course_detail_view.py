@@ -187,12 +187,13 @@ class CourseDetailView(QWidget):
         
         self.description_label = QLabel()
         self.description_label.setWordWrap(True)
-        self.description_label.setStyleSheet("color: palette(mid);")
+        # Use system palette text color with opacity for better dark/light theme compatibility
+        self.description_label.setStyleSheet("color: palette(text); opacity: 0.7;")
         course_info.addWidget(self.description_label)
         
         # Collection name
         self.collection_label = QLabel()
-        self.collection_label.setStyleSheet("color: palette(dark); font-style: italic;")
+        self.collection_label.setStyleSheet("color: palette(text); opacity: 0.7; font-style: italic;")
         course_info.addWidget(self.collection_label)
         course_info.addStretch()
         
