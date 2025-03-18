@@ -141,9 +141,9 @@ class SSHKeyPage(QWizardPage):
                 self.wizard().ssh_keys = ssh_keys
         
         # Get the last used SSH key from config
-        from core.config import PortalConfig
-        config = PortalConfig.load()
-        last_key_path = config.last_ssh_key_path
+        from core.preferences import Preferences
+        preferences = Preferences.load()
+        last_key_path = preferences.course_publish.default_ssh_pubkey
         last_key_index = -1
         
         # Add keys to dropdown
@@ -278,6 +278,10 @@ class SSHKeyPage(QWizardPage):
         layout.addLayout(button_layout)
         
         dialog.exec_()
+    
+    def isComplete(self) -> bool:
+        """Always return True to enable the Next button"""
+        return True
 
     def validatePage(self):
         """Validate the page before proceeding"""
@@ -306,10 +310,10 @@ class SSHKeyPage(QWizardPage):
                     self.wizard().selected_key = (pub_key_path, key_content)
                 
                 # Save the key path to config
-                from core.config import PortalConfig
-                config = PortalConfig.load()
-                config.last_ssh_key_path = pub_key_path
-                config.save()
+                from core.preferences import Preferences
+                preferences = Preferences.load()
+                preferences.course_publish.default_ssh_pubkey = pub_key_path
+                preferences.save()
                 
                 QMessageBox.information(
                     self,
@@ -353,10 +357,10 @@ class SSHKeyPage(QWizardPage):
                         self.wizard().selected_key = (path, content)
                     
                     # Save the key path to config
-                    from core.config import PortalConfig
-                    config = PortalConfig.load()
-                    config.last_ssh_key_path = path
-                    config.save()
+                    from core.preferences import Preferences
+                    preferences = Preferences.load()
+                    preferences.course_publish.default_ssh_pubkey = path
+                    preferences.save()
                     
                     key_found = True
                     break

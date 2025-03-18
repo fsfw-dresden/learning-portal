@@ -36,6 +36,11 @@ class ApplicationSupportPreferences:
 
 
 @dataclass
+class CoursePublishPreferences:
+    """Course publish preferences"""
+    default_ssh_pubkey: str = ""
+
+@dataclass
 class UserPreferences:
     """User identity preferences"""
     nick: str = "Anonymous"
@@ -55,6 +60,7 @@ class Preferences:
     skill: SkillLevelPreferences = field(default_factory=SkillLevelPreferences)
     user: UserPreferences = field(default_factory=UserPreferences)
     support: ApplicationSupportPreferences = field(default_factory=ApplicationSupportPreferences)
+    course_publish: CoursePublishPreferences = field(default_factory=CoursePublishPreferences)
     
     @classmethod
     def load(cls) -> 'Preferences':
@@ -74,7 +80,8 @@ class Preferences:
         return cls(
             skill=SkillLevelPreferences(**data.get('skill', {})),
             user=UserPreferences(**data.get('user', {})),
-            support=ApplicationSupportPreferences(**data.get('support', {}))
+            support=ApplicationSupportPreferences(**data.get('support', {})),
+            course_publish=CoursePublishPreferences(**data.get('course_publish', {}))
         )
 
     def save(self) -> None:
