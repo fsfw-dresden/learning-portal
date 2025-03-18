@@ -431,6 +431,32 @@ class PublishOptionsPage(QWizardPage):
         self.commit_message.setText(tr(f"Update course: {course.title}"))
         layout.addWidget(self.commit_message)
         
+        # Remote repository section
+        remote_group = QGroupBox(tr("Remote Repository"))
+        remote_layout = QVBoxLayout(remote_group)
+        
+        # Existing remote info
+        self.remote_info_label = QLabel()
+        self.remote_info_label.setWordWrap(True)
+        remote_layout.addWidget(self.remote_info_label)
+        
+        # Remote URL edit
+        url_layout = QHBoxLayout()
+        url_layout.addWidget(QLabel(tr("Remote URL:")))
+        self.remote_url_edit = QLineEdit()
+        url_layout.addWidget(self.remote_url_edit)
+        remote_layout.addLayout(url_layout)
+        
+        # Create repository button
+        button_layout = QHBoxLayout()
+        self.create_repo_button = QPushButton(tr("Create Repository"))
+        self.create_repo_button.clicked.connect(self.create_repository)
+        button_layout.addWidget(self.create_repo_button)
+        button_layout.addStretch()
+        remote_layout.addLayout(button_layout)
+        
+        layout.addWidget(remote_group)
+        
         # Push to remote option
         self.push_checkbox = QCheckBox(tr("Push to remote repository"))
         self.push_checkbox.setChecked(True)
@@ -439,11 +465,96 @@ class PublishOptionsPage(QWizardPage):
         # Register fields
         self.registerField("commit_message*", self.commit_message)
         self.registerField("push_to_remote", self.push_checkbox)
+        self.registerField("remote_url", self.remote_url_edit)
+    
+    def initializePage(self):
+        """Initialize the page when it's shown"""
+        # Check for existing remote
+        existing_remote = None
+        if self.course.course_path:
+            existing_remote = CoursePublisher.get_remote_url(self.course.course_path)
+        
+        # Get repository info from previous pages
+        username = self.field("username")
+        repo_name = self.field("repo_name")
+        
+        # Set remote URL info and field
+        if existing_remote:
+            self.remote_url_edit.setText(existing_remote)
+            self.create_repo_button.setEnabled(False)
+            self.create_repo_button.setText(tr("Repository Already Exists"))
+        else:
+            # If we have a repo_url from a previous step, use that
+            if hasattr(self.wizard(), 'repo_url') and self.wizard().repo_url:
+                expected_url = self.wizard().repo_url
+                self.remote_info_label.setText(tr("Repository has been created."))
+                self.create_repo_button.setEnabled(False)
+                self.create_repo_button.setText(tr("Repository Already Created"))
+            else:
+                # Generate expected remote URL based on username and repo_name
+                # This is just a placeholder - the actual URL format depends on your git server
+                expected_url = f"git@git.example.com:{username}/{repo_name}.git"
+                self.remote_info_label.setText(tr("No existing remote URL detected. You can create a new repository."))
+                self.create_repo_button.setEnabled(True)
+            
+            self.remote_url_edit.setText(expected_url)
+    
+    def create_repository(self):
+        """Create a new repository using the CoursePublisher"""
+        # Get SSH key content
+        if not hasattr(self.wizard(), 'selected_key') or not self.wizard().selected_key:
+            QMessageBox.warning(
+                self,
+                tr("Error"),
+                tr("No SSH key selected. Please go back and select or create an SSH key.")
+            )
+            return
+        
+        _, key_content = self.wizard().selected_key
+        
+        # Get repository info
+        username = self.field("username")
+        repo_name = self.field("repo_name")
+        
+        # Create the repository
+        success, repo_url, message = CoursePublisher.create_remote_repository(
+            key_content, repo_name, username
+        )
+        
+        if not success:
+            QMessageBox.warning(
+                self,
+                tr("Error"),
+                tr(f"Failed to create repository: {message}")
+            )
+            return
+        
+        # Update UI
+        self.remote_info_label.setText(tr("Repository created successfully."))
+        self.remote_url_edit.setText(repo_url)
+        self.create_repo_button.setEnabled(False)
+        self.create_repo_button.setText(tr("Repository Created"))
+        
+        # Store the repo URL in the wizard
+        if hasattr(self.wizard(), 'repo_url'):
+            self.wizard().repo_url = repo_url
+        
+        QMessageBox.information(
+            self,
+            tr("Success"),
+            tr(f"Repository created successfully: {repo_url}")
+        )
+    
+    def validatePage(self):
+        """Validate the page before proceeding"""
+        # Update the repo_url in the wizard with the possibly edited value
+        if hasattr(self.wizard(), 'repo_url'):
+            self.wizard().repo_url = self.remote_url_edit.text()
+        return True
     
     def isComplete(self) -> bool:
         """Always return True to enable the Finish button"""
         return True
-    
 
 class PublishSummaryPage(QWizardPage):
     """Summary page for the publish wizard"""
@@ -537,6 +648,11 @@ class PublishWizard(QWizard):
             username = self.field("username")
             repo_name = self.field("repo_name")
             
+            # Get the remote URL from the options page
+            remote_url = self.field("remote_url") if self.hasField("remote_url") else None
+            if remote_url:
+                self.repo_url = remote_url
+            
             # Check if directory is a git repository
             is_git_repo = CoursePublisher.is_git_repository(self.course.course_path)
             
@@ -561,23 +677,15 @@ class PublishWizard(QWizard):
                 
                 _, key_content = self.selected_key
                 
-                # Create remote repository if needed
-                if not self.repo_url:
-                    success, repo_url, message = CoursePublisher.create_remote_repository(
-                        key_content, repo_name, username
-                    )
-                    
-                    if not success:
-                        self.publish_completed.emit(False, tr(f"Failed to create repository: {message}"))
-                        return
-                    
-                    self.repo_url = repo_url
+                # Check if remote already exists
+                existing_remote = CoursePublisher.get_remote_url(self.course.course_path)
                 
-                # Set up git remote
-                success = CoursePublisher.setup_git_remote(self.course.course_path, self.repo_url)
-                if not success:
-                    self.publish_completed.emit(False, tr("Failed to set up git remote"))
-                    return
+                # Set up git remote if needed
+                if self.repo_url and (not existing_remote or self.repo_url != existing_remote):
+                    success = CoursePublisher.setup_git_remote(self.course.course_path, self.repo_url)
+                    if not success:
+                        self.publish_completed.emit(False, tr("Failed to set up git remote"))
+                        return
                 
                 # Push to remote
                 success, error = CoursePublisher.push_to_remote(self.course.course_path)
