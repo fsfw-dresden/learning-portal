@@ -4,3 +4,4 @@ liascript_devserver: http://localhost:3000
 liascript_html_path: /liascript/index.html
 liascript_editor_url: http://localhost:9000/?/tutor/
 liascript_editor_open_command: /usr/bin/liascript-editor-wrapper.sh %f
+gitolite_publish_api_url: https://oer.schulstick.winzlieb.eu
