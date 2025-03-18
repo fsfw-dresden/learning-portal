@@ -282,14 +282,16 @@ class CoursePublisher:
                 return False, "", f"Error creating repository: {response.text}"
             
             # Parse response
+            remote_user = config.gitolite_default_username
             result = response.json()
             repo_url = result.get("repo_url", "")
+            remote_url = f"{remote_user}@{repo_url}"
             message = result.get("message", "")
             
             if not repo_url:
                 return False, "", f"No repository URL returned: {message}"
             
-            return True, repo_url, message
+            return True, remote_url, message
         except Exception as e:
             logger.error(f"Error creating remote repository: {e}")
             return False, "", f"Error creating remote repository: {str(e)}"
