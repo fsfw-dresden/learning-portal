@@ -16,6 +16,11 @@ def tr(text: str) -> str:
 class PortalWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        
+        # Load translations for portal module when window is initialized
+        from core.translation import load_module_translations
+        load_module_translations("portal")
+        
         self.setWindowTitle("Schulstick Portal")
         self.resize(1024, 768)
         
@@ -113,3 +118,11 @@ class PortalWindow(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.unit_browser)
         self.finder_action.setChecked(False)
         self.browser_action.setChecked(True)
+        
+    def closeEvent(self, event):
+        """Handle window close event"""
+        # Unload translations when window is closed
+        from core.translation import unload_module_translations
+        unload_module_translations("portal")
+        
+        super().closeEvent(event)

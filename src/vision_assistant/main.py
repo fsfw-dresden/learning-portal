@@ -14,6 +14,7 @@ from portal.window import PortalWindow
 from vision_assistant.vision import HighlightOverlay
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtGui import (QPainter, QPainterPath, QColor, QIcon, QMovie, QPixmap)
+from vision_assistant.tr import tr
 
 os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warning=false'
 #maximize logging
@@ -22,7 +23,12 @@ os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false;qt.*=false;*.warn
 class CircularWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.porttal = None 
+        
+        # Load translations for vision_assistant module when window is initialized
+        from core.translation import load_module_translations
+        load_module_translations("vision_assistant")
+        
+        self.porttal = None
         self.preferences = Preferences.load()
         
         # Setup logging
@@ -73,13 +79,14 @@ class CircularWindow(QWidget):
         
         # Create tray menu
         tray_menu = QMenu()
-        show_action = QAction("Show", self)
-        hide_action = QAction("Hide", self)
-        quit_action = QAction("Quit", self)
+        show_action = QAction(tr("Show"), self)
+        hide_action = QAction(tr("Hide"), self)
+        quit_action = QAction(tr("Quit"), self)
         
         show_action.triggered.connect(self.show_from_tray)
         hide_action.triggered.connect(self.hide_to_tray)
-        quit_action.triggered.connect(QApplication.quit)
+        # Connect quit action to our cleanup method
+        quit_action.triggered.connect(self.cleanup_and_quit)
         
         tray_menu.addAction(show_action)
         tray_menu.addAction(hide_action)
@@ -221,25 +228,25 @@ class CircularWindow(QWidget):
         """)
         
         # Screenshot action
-        screenshot_action = QAction(QIcon.fromTheme("camera-photo"), "Take Screenshot", self)
+        screenshot_action = QAction(QIcon.fromTheme("camera-photo"), tr("Take Screenshot"), self)
         screenshot_action.triggered.connect(self.take_screenshot)
         menu.addAction(screenshot_action)
         
         # Show last hint action
-        hint_action = QAction(QIcon.fromTheme("help-hint"), "Show Last Hint", self)
+        hint_action = QAction(QIcon.fromTheme("help-hint"), tr("Show Last Hint"), self)
         hint_action.triggered.connect(self.show_last_hint)
         menu.addAction(hint_action)
         
         # Toggle expand action
-        expand_action = QAction(QIcon.fromTheme("view-fullscreen"), 
-                              "Expand Window" if not self.is_expanded else "Collapse Window", 
+        expand_action = QAction(QIcon.fromTheme("view-fullscreen"),
+                              tr("Expand Window") if not self.is_expanded else tr("Collapse Window"),
                               self)
         expand_action.triggered.connect(self.toggle_window_size)
         menu.addAction(expand_action)
         
         
         # Launch portal action
-        portal_action = QAction(QIcon.fromTheme("applications-education"), "Open Portal", self)
+        portal_action = QAction(QIcon.fromTheme("applications-education"), tr("Open Portal"), self)
         portal_action.triggered.connect(self.launch_portal)
         menu.addAction(portal_action)
         
@@ -247,7 +254,7 @@ class CircularWindow(QWidget):
         menu.addSeparator()
         
         # Close action
-        close_action = QAction(QIcon.fromTheme("window-close"), "Close", self)
+        close_action = QAction(QIcon.fromTheme("window-close"), tr("Close"), self)
         def close_sequence():
             menu.hide()  # Hide instead of close
             # Use singleShot timer to delay window close slightly
@@ -440,6 +447,18 @@ class CircularWindow(QWidget):
             except Exception as e:
                 self.logger.error(f"Error cleaning up API session: {e}")
     
+    def cleanup_and_quit(self):
+        """Clean up resources and quit the application"""
+        # Clean up API session
+        self.cleanup_session()
+        
+        # Unload translations
+        from core.translation import unload_module_translations
+        unload_module_translations("vision_assistant")
+        
+        # Quit the application
+        QApplication.quit()
+    
     def closeEvent(self, event):
         """Handle window close event"""
         event.ignore()
@@ -504,6 +523,10 @@ def main():
     
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    
+    # Initialize translation using the TranslationManager
+    from core.translation import load_module_translations
+    load_module_translations("vision_assistant")
     window = CircularWindow()
     window.show()
     return app.exec_()

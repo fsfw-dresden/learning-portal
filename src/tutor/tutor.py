@@ -15,15 +15,7 @@ from core.models import BaseLesson, LessonMetadata, ViewMode, DockPosition, Scre
 from core.preferences import Preferences
 from core.launcher import ProgramLauncher
 
-# Translation context for all tutor pages
-TRANSLATION_CONTEXT = "TutorView"
-
-def tr(text: str, *args) -> str:
-    """Helper function for translations with variable substitution"""
-    translated = QApplication.translate(TRANSLATION_CONTEXT, text)
-    if args:
-        return translated % args
-    return translated
+from tutor.tr import tr
 
 class CollapseIcons:
     BOTTOM = ("▼", "▲")
@@ -35,6 +27,11 @@ class TutorView(QWidget):
     
     def __init__(self, unit: BaseLesson, disable_program: bool = False):
         super().__init__()
+        
+        # Load translations for tutor module when widget is initialized
+        from core.translation import load_module_translations
+        load_module_translations("tutor")
+        
         self.unit = unit
         if isinstance(unit, LessonMetadata) and  unit.screen_hint != None:
             self.screen_hint = unit.screen_hint
@@ -325,6 +322,11 @@ class TutorView(QWidget):
             
         #if hasattr(self, 'program_process') and self.program_process:
         #    self.program_process.terminate()
+        
+        # Unload translations when widget is closed
+        from core.translation import unload_module_translations
+        unload_module_translations("tutor")
+        
         # Remove from proxy's active view
         from .tutor_proxy import TutorViewProxy
         proxy = TutorViewProxy.get_instance()

@@ -12,15 +12,7 @@ from PyQt5.QtGui import QIcon
 from core.preferences import Preferences, SkillLevelPreferences
 
 
-# Translation context for all wizard pages
-TRANSLATION_CONTEXT = "WelcomeWizard"
-
-def tr(text: str, *args) -> str:
-    """Helper function for translations with variable substitution"""
-    translated = QApplication.translate(TRANSLATION_CONTEXT, text)
-    if args:
-        return translated % args
-    return translated
+from welcome.tr import tr
 
 class WelcomeWizardPageMeta(type(QWizardPage), ABCMeta):
     pass
@@ -235,6 +227,10 @@ class WelcomeWizard(QWizard):
         # Setup logging
         self.logger = logging.getLogger(__name__)
         
+        # Load translations for welcome module when wizard is initialized
+        from core.translation import load_module_translations
+        load_module_translations("welcome")
+        
         # Load preferences
         self.preferences = Preferences.load()
         self.logger.info(f"Loaded preferences from: {Preferences._get_config_path()}")
@@ -272,5 +268,9 @@ class WelcomeWizard(QWizard):
             self.preferences.save()
 
             self.logger.info(f"Saved preferences to: {Preferences._get_config_path()}")
+        
+        # Unload translations when wizard is finished
+        from core.translation import unload_module_translations
+        unload_module_translations("welcome")
     
             

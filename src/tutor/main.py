@@ -1,10 +1,13 @@
 import sys
+import os
 from pathlib import Path
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTranslator, QLocale, Qt
 from core.models import UnitMetadata
+from core.translation import load_module_translations
 from tutor.tutor import TutorView
 from tutor.tutor_proxy import TutorViewProxy
+from tutor.tr import tr
 
 def main():
     # Enable high DPI scaling
@@ -13,20 +16,8 @@ def main():
     
     app = QApplication(sys.argv)
 
-    # Initialize translation
-    translator = QTranslator()
-    locale = QLocale()
-    try:
-        import pkg_resources
-        translations_dir = pkg_resources.resource_filename('tutor', 'translations')
-    except (ImportError, pkg_resources.DistributionNotFound):
-        translations_dir = os.path.join(os.path.dirname(__file__), "translations")
-    
-    # Try loading translations in order of preference
-    if (translator.load(locale, "tutor", "_", translations_dir) or
-        translator.load(QLocale(locale.language()), "tutor", "_", translations_dir) or
-        (locale.language() != QLocale.English and translator.load("tutor_en", translations_dir))):
-        app.installTranslator(translator)
+    # Initialize translation using the TranslationManager
+    load_module_translations("tutor")
     
     if len(sys.argv) > 1:
         # Load unit from provided directory
