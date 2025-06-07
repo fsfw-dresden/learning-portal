@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Learning Portal
-Name[de]=Schulstick Lernportal
+Name[de]=Lernportal
 Comment=Educational portal for students
 Comment[de]=Lernportal für Schulen und Universitäten
 Exec=/usr/bin/portal-wrapper.sh

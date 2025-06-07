@@ -4,4 +4,4 @@
 systemctl --user start liascript-devserver.service || true
 
 # Launch the actual portal application
-exec portal
+exec learning-portal
