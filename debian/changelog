@@ -1,4 +1,4 @@
-schulstick (0.1.6) UNRELEASED; urgency=medium
+learning-portal (0.1.6) UNRELEASED; urgency=medium
 
   * Major improvements to unit scanner and lesson loading:
     - Added SimpleUnitCard for displaying simple markdown lessons
@@ -20,7 +20,7 @@ schulstick (0.1.6) UNRELEASED; urgency=medium
     - Improved lesson loading and validation
  -- Schulstick Team <info@schulstick.org>  Sat, 07 Jun 2025 02:34:56 +0200
 
-schulstick (0.1.2) unstable; urgency=medium
+learning-portal (0.1.2) unstable; urgency=medium
 
   * Major improvements to TutorView and configuration system:
     - Added configuration management and unit scanning enhancements
@@ -55,7 +55,7 @@ schulstick (0.1.2) unstable; urgency=medium
 
  -- Schulstick Team <info@schulstick.org>  Thu, 28 Nov 2024 08:17:24 +0100
 
-schulstick (0.1.1) unstable; urgency=medium
+learning-portal (0.1.1) unstable; urgency=medium
 
   * Create a tutor view with the following features:
     - Add standalone tutor package with dynamic tutorial view
@@ -78,7 +78,7 @@ schulstick (0.1.1) unstable; urgency=medium
 
  -- Schulstick Team <team@schulstick.org>  Wed, 27 Nov 2024 19:49:55 +0100
 
-schulstick (0.1.0-1) unstable; urgency=medium
+learning-portal (0.1.0-1) unstable; urgency=medium
 
   * Initial release.
 

@@ -37,10 +37,10 @@ class PortalConfig(YAMLWizard):
     def _get_config_path() -> Path:
         """Get the appropriate config file path based on environment"""
         if EnvHelper.is_development():
-            return Path('./dev_config/schulstick-portal-config.yml')
+            return Path('./dev_config/learning-portal-config.yml')
         else:
-            config_dir = site_config_dir(appname='schulstick', multipath=True)
-            return Path(config_dir) / 'schulstick-portal-config.yml'
+            config_dir = site_config_dir(appname='learning-portal', multipath=True)
+            return Path(config_dir) / 'learning-portal-config.yml'
     
     @classmethod
     def get_default_config(cls) -> 'PortalConfig':

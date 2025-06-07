@@ -36,9 +36,9 @@
       in
       rec {
         packages = {
-          schulstick-portal = pkgs.python3Packages.buildPythonApplication {
-            pname = "schulstick-portal";
-            version = "0.1.5";
+          learning-portal = pkgs.python3Packages.buildPythonApplication {
+            pname = "learning-portal";
+            version = "0.1.6";
             src = ./.;
             format = "pyproject";
             
@@ -77,36 +77,36 @@
             doCheck = false;
           };
           
-          default = packages.schulstick-portal;
+          default = packages.learning-portal;
         };
         
         apps = {
           vision-assistant = flake-utils.lib.mkApp { 
-            drv = self.packages.${system}.schulstick-portal;
+            drv = self.packages.${system}.learning-portal;
             name = "vision-assistant";
           };
           welcome = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.schulstick-portal;
+            drv = self.packages.${system}.learning-portal;
             name = "welcome";
           };
           icon-finder = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.schulstick-portal;
+            drv = self.packages.${system}.learning-portal;
             name = "icon-finder";
           };
           portal = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.schulstick-portal;
+            drv = self.packages.${system}.learning-portal;
             name = "portal";
           };
           tutor = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.schulstick-portal;
+            drv = self.packages.${system}.learning-portal;
             name = "tutor";
           };
           release = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.schulstick-portal;
+            drv = self.packages.${system}.learning-portal;
             name = "release";
           };
           dataclass-forms-demo = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.schulstick-portal;
+            drv = self.packages.${system}.learning-portal;
             name = "dataclass-forms-demo";
           };
           default = self.apps.${system}.portal;
@@ -123,7 +123,7 @@
 
           QT_QPA_PLATFORM_PLUGIN_PATH="${pkgs.qt5.qtbase.bin}/lib/qt-${pkgs.qt5.qtbase.version}/plugins/platforms";
           
-          SCHULSTICK_ENV = "development";
+          LEARNING_PORTAL_ENV = "development";
           
           # Add shell aliases for development convenience
           shellHook = ''
@@ -134,7 +134,7 @@
             alias portal="python -m portal.main"
             alias tutor="python -m tutor.main"
             alias dataclass-forms-demo="python -m dataclass_forms.demo"
-            alias devserver="npx @liascript/devserver --live --input ./OER-materials"  ## broken. might want use: "node dist/index.js -i ../schulstick-portal/OER-materials/"
+            alias devserver="npx @liascript/devserver --live --input ./OER-materials"  ## broken. might want use: "node dist/index.js -i ./OER-materials/"
             
             echo "Development shell aliases available:"
             echo "  vision-assistant - Run the vision assistant"

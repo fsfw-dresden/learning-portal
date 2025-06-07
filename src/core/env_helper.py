@@ -8,8 +8,8 @@ class Environment(Enum):
 class EnvHelper:
     @staticmethod
     def get_environment() -> Environment:
-        """Get the current environment from SCHULSTICK_ENV"""
-        env = os.getenv("SCHULSTICK_ENV", "production").lower()
+        """Get the current environment from LEARNING_PORTAL_ENV"""
+        env = os.getenv("LEARNING_PORTAL_ENV", "production").lower()
         return Environment.DEVELOPMENT if env == "development" else Environment.PRODUCTION
 
     @staticmethod

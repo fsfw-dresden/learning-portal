@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export PYBUILD_NAME=schulstick
+export PYBUILD_NAME=learning-portal
 export DH_VERBOSE=1
 export PYBUILD_BUILD_ARGS=--no-isolation
 export PYBUILD_SYSTEM=pyproject
@@ -11,7 +11,7 @@ export PYBUILD_INSTALL_ARGS=--install-scripts=/usr/bin
 
 override_dh_auto_clean:
 	dh_auto_clean
-	rm -rf schulstick
+	rm -rf learning-portal
 	rm -f dist/*.deb
 	rm -rf .pytest_cache
 	rm -rf src/*.egg-info
@@ -22,7 +22,7 @@ override_dh_auto_build:
 	# Build Python package
 	dh_auto_build
 	# Build translations
-	for package in welcome tutor; do \
+	for package in welcome tutor portal; do \
 			for ts in *.ts; do \
 				lrelease src/$$package/translations/$$ts; \
 			done \
@@ -34,21 +34,21 @@ override_dh_auto_test:
 override_dh_auto_install:
 	dh_auto_install
 	# Install pip dependencies
-	PYTHONPATH=debian/schulstick/usr/lib/python3/dist-packages pip3 install --target=debian/schulstick/usr/lib/python3/dist-packages "dataclass-wizard[all]>=0.22.0" typing-extensions>=4.7.0
+	PYTHONPATH=debian/learning-portal/usr/lib/python3/dist-packages pip3 install --target=debian/learning-portal/usr/lib/python3/dist-packages "dataclass-wizard[all]>=0.22.0" typing-extensions>=4.7.0
 	# Install markdown tutorials
-	mkdir -p debian/schulstick/usr/share/learning-portal/courses/examples/
-	cp -r OER-materials/examples debian/schulstick/usr/share/learning-portal/courses/
+	mkdir -p debian/learning-portal/usr/share/learning-portal/courses/examples/
+	cp -r OER-materials/examples debian/learning-portal/usr/share/learning-portal/courses/
 	# Install translations
-	mkdir -p debian/schulstick/usr/share/schulstick/translations
-	cp src/**/translations/*.qm debian/schulstick/usr/share/schulstick/translations/
+	mkdir -p debian/learning-portal/usr/share/learning-portal/translations
+	cp src/**/translations/*.qm debian/learning-portal/usr/share/learning-portal/translations/
 	# Install default config
-	mkdir -p debian/schulstick/etc/xdg/schulstick
-	cp debian/schulstick-portal-config.yml debian/schulstick/etc/xdg/schulstick/
+	mkdir -p debian/learning-portal/etc/xdg/learning-portal
+	cp debian/learning-portal-config.yml debian/learning-portal/etc/xdg/learning-portal/
 	# Install desktop file and wrapper
-	mkdir -p debian/schulstick/usr/share/applications
-	mkdir -p debian/schulstick/usr/share/learning-portal
-	mkdir -p debian/schulstick/usr/bin
-	cp debian/learning-portal.desktop debian/schulstick/usr/share/applications/
-	cp debian/portal-wrapper.sh debian/schulstick/usr/bin/
-	cp debian/learning-portal-logo.png debian/schulstick/usr/share/learning-portal/
-	chmod +x debian/schulstick/usr/bin/portal-wrapper.sh
+	mkdir -p debian/learning-portal/usr/share/applications
+	mkdir -p debian/learning-portal/usr/share/learning-portal
+	mkdir -p debian/learning-portal/usr/bin
+	cp debian/learning-portal.desktop debian/learning-portal/usr/share/applications/
+	cp debian/portal-wrapper.sh debian/learning-portal/usr/bin/
+	cp debian/learning-portal-logo.png debian/learning-portal/usr/share/learning-portal/
+	chmod +x debian/learning-portal/usr/bin/portal-wrapper.sh

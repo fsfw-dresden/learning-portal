@@ -11,7 +11,7 @@ __pycache__
 *.substvars
 .pybuild
 dev_config
-debian/schulstick/
+debian/learning-portal/
 dist/*.deb
 dist/*.tar.gz
 dist/*.whl

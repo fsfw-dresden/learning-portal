@@ -1,4 +1,4 @@
-Source: schulstick
+Source: learning-portal
 Section: education
 Priority: optional
 Maintainer: Schulstick Team <team@schulstick.org>
@@ -14,7 +14,7 @@ Build-Depends: debhelper-compat (= 13),
                nodejs,
                npm
 
-Package: schulstick
+Package: learning-portal
 Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
