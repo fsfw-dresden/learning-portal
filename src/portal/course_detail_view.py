@@ -15,6 +15,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QSize
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 from core.models import BaseLesson, LessonMetadata, Lesson, Course
 from portal.unit_card import UnitCard
+from tutor.tutor_proxy import TutorViewProxy
 import logging
 
 logger = logging.getLogger(__name__)
@@ -136,6 +137,7 @@ class CourseDetailView(QWidget):
     """Detailed view of a course and its lessons"""
     back_clicked = pyqtSignal()
     course_updated = pyqtSignal(Course)
+    start_tutor = pyqtSignal(BaseLesson)  # New signal for starting tutor
     
     def __init__(self, writable=False, parent=None):
         super().__init__(parent)
@@ -220,8 +222,8 @@ class CourseDetailView(QWidget):
         
         self.view_toggle_group = QButtonGroup(self)
         self.table_view_button = QRadioButton(tr("Table View"))
-        self.table_view_button.setChecked(True)
         self.card_view_button = QRadioButton(tr("Card View"))
+        self.card_view_button.setChecked(True)  # Make Card view default
         
         self.view_toggle_group.addButton(self.table_view_button)
         self.view_toggle_group.addButton(self.card_view_button)
@@ -236,15 +238,18 @@ class CourseDetailView(QWidget):
         
         # Table view for lessons
         self.lessons_table = QTableWidget()
-        self.lessons_table.setColumnCount(4)
-        self.lessons_table.setHorizontalHeaderLabels(["Lesson", "Status", "Progress", "Duration"])
+        self.lessons_table.setColumnCount(5)  # Added one more column for play button
+        self.lessons_table.setHorizontalHeaderLabels(["Lesson", "Status", "Progress", "Duration", ""])
         self.lessons_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.lessons_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.lessons_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.lessons_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.lessons_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.Fixed)  # Fixed width for play button
+        self.lessons_table.setColumnWidth(4, 40)  # Set width for play button column
         self.lessons_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.lessons_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.lessons_table.verticalHeader().setVisible(False)
+        self.lessons_table.itemDoubleClicked.connect(self.on_table_double_click)
         
         # Card view for lessons
         self.lessons_card_view = QScrollArea()
@@ -437,13 +442,17 @@ class CourseDetailView(QWidget):
         self.populate_lessons_table(course.lessons)
         self.populate_lessons_cards(course.lessons)
         
+        # Start with card view by default
+        self.lessons_stack.setCurrentIndex(1)
+        
     def populate_lessons_table(self, lessons: List[BaseLesson]):
         """Populate the lessons table with lessons from the course"""
         self.lessons_table.setRowCount(len(lessons))
         
         for i, lesson in enumerate(lessons):
-            # Lesson title
+            # Store the lesson object in the first cell for reference
             title_item = QTableWidgetItem(lesson.title)
+            title_item.setData(Qt.UserRole, lesson)
             self.lessons_table.setItem(i, 0, title_item)
             
             # Status (completed, in progress, not started)
@@ -466,7 +475,15 @@ class CourseDetailView(QWidget):
             duration = f"{random.randint(5, 30)} min"
             duration_item = QTableWidgetItem(duration)
             self.lessons_table.setItem(i, 3, duration_item)
-    
+            
+            # Play button
+            play_button = QPushButton()
+            play_button.setIcon(QIcon.fromTheme("media-playback-start"))
+            play_button.setToolTip(tr("Start Tutor"))
+            play_button.setFixedSize(32, 32)
+            play_button.clicked.connect(lambda checked, l=lesson: self._start_tutor(l))
+            self.lessons_table.setCellWidget(i, 4, play_button)
+            
     def populate_lessons_cards(self, lessons: List[BaseLesson]):
         """Populate the card view with lesson cards"""
         # Clear existing cards
@@ -482,3 +499,14 @@ class CourseDetailView(QWidget):
             
             card = UnitCard(lesson)
             self.lessons_card_layout.addWidget(card, row, col) 
+
+    def on_table_double_click(self, item):
+        """Handle double click on table row"""
+        row = item.row()
+        lesson = self.lessons_table.item(row, 0).data(Qt.UserRole)
+        if lesson:
+            self._start_tutor(lesson)
+            
+    def _start_tutor(self, lesson: BaseLesson):
+        """Start the tutor for a lesson"""
+        TutorViewProxy.get_instance().open_tutor(lesson) 
