@@ -5,7 +5,7 @@ import yaml
 from platformdirs import user_config_dir
 from core.env_helper import EnvHelper
 
-APP_NAME = "vision-assistant"
+APP_NAME = "learning-portal"
 
 @dataclass
 class SkillLevelPreferences:
