@@ -9,6 +9,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWebChannel import QWebChannel
 import json
 import subprocess
+import os
 from pathlib import Path
 from typing import Optional, Tuple
 from core.models import BaseLesson, LessonMetadata, ViewMode, DockPosition, ScreenHint
@@ -25,6 +26,41 @@ class CollapseIcons:
 
 class TutorView(QWidget):
     
+    @staticmethod
+    def is_wayland() -> bool:
+        """Detect if we're running on Wayland"""
+        # Check for Wayland-specific environment variables
+        wayland_display = os.environ.get('WAYLAND_DISPLAY')
+        xdg_session_type = os.environ.get('XDG_SESSION_TYPE')
+        
+        # Also check if we're running under Xwayland
+        try:
+            # If xinput shows Xwayland warning, we're on Wayland
+            result = subprocess.run(['xinput', '--version'], 
+                                   capture_output=True, text=True, timeout=2)
+            if 'Xwayland' in result.stderr:
+                return True
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+            pass
+            
+        return bool(wayland_display) or xdg_session_type == 'wayland'
+    
+    def show_wayland_warning(self) -> bool:
+        """Show Wayland warning dialog and return True if user wants to switch to free mode"""
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Warning)
+        msg.setWindowTitle(tr("Wayland Detected"))
+        msg.setText(tr("Window docking may not work properly on Wayland"))
+        msg.setInformativeText(tr("You are running on Wayland. Window docking and positioning may not work as expected.\n\nWould you like to switch to free mode where you can position the window manually?"))
+        
+        # Add custom buttons
+        free_mode_btn = msg.addButton(tr("Switch to Free Mode"), QMessageBox.AcceptRole)
+        stay_docked_btn = msg.addButton(tr("Stay in Dock Mode"), QMessageBox.RejectRole)
+        msg.setDefaultButton(free_mode_btn)
+        
+        msg.exec_()
+        return msg.clickedButton() == free_mode_btn
+    
     def __init__(self, unit: BaseLesson, disable_program: bool = False):
         super().__init__()
         
@@ -32,17 +68,41 @@ class TutorView(QWidget):
         from core.translation import load_module_translations
         load_module_translations("tutor")
         
+        # Initialize logger first
+        self.logger = logging.getLogger(__name__)
+        
         self.unit = unit
-        if isinstance(unit, LessonMetadata) and  unit.screen_hint != None:
+        self.logger.info(f"DEBUG: Unit type: {type(unit)}, has screen_hint: {hasattr(unit, 'screen_hint')}, has metadata: {hasattr(unit, 'metadata')}")
+        if hasattr(unit, 'metadata') and unit.metadata:
+            self.logger.info(f"DEBUG: Metadata type: {type(unit.metadata)}, metadata.screen_hint: {getattr(unit.metadata, 'screen_hint', 'NOT_FOUND')}")
+        
+        if hasattr(unit, 'screen_hint') and unit.screen_hint is not None:
             self.screen_hint = unit.screen_hint
+            self.logger.info(f"DEBUG: Using unit screen_hint: position={unit.screen_hint.position}, mode={unit.screen_hint.mode}")
+        elif hasattr(unit, 'metadata') and unit.metadata and hasattr(unit.metadata, 'screen_hint') and unit.metadata.screen_hint is not None:
+            self.screen_hint = unit.metadata.screen_hint
+            self.logger.info(f"DEBUG: Using unit.metadata screen_hint: position={unit.metadata.screen_hint.position}, mode={unit.metadata.screen_hint.mode}")
         else:
             self.screen_hint = ScreenHint(position=DockPosition.RIGHT, mode=ViewMode.DOCKED)
+            self.logger.info(f"DEBUG: Using default screen_hint: position=RIGHT, mode=DOCKED")
         
-        self.logger = logging.getLogger(__name__)
         self.current_url = None
         self.is_expanded = True
-        self.position = DockPosition(self.screen_hint.position)
-        self.mode = ViewMode(self.screen_hint.mode)
+        self.position = DockPosition(self.screen_hint.position) if self.screen_hint.position else DockPosition.RIGHT
+        self.mode = ViewMode(self.screen_hint.mode) if self.screen_hint.mode else ViewMode.DOCKED
+        
+        self.logger.info(f"DEBUG: Final position={self.position}, mode={self.mode}")
+        
+        # Check for Wayland and show warning if in dock mode
+        is_wayland = self.is_wayland()
+        self.logger.info(f"DEBUG: Wayland detected: {is_wayland}")
+        
+        if self.mode == ViewMode.DOCKED and is_wayland:
+            self.logger.info("DEBUG: Detected Wayland with dock mode, showing warning")
+            if self.show_wayland_warning():
+                # User chose to switch to free mode
+                self.mode = ViewMode.FREE
+                self.logger.info("DEBUG: Switched to free mode due to Wayland")
         
         # Context menu setup
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -52,8 +112,10 @@ class TutorView(QWidget):
         if self.mode == ViewMode.DOCKED:
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
             self.setAttribute(Qt.WA_TranslucentBackground)
+            self.logger.info("DEBUG: Set window flags for DOCKED mode")
         else:
             self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+            self.logger.info("DEBUG: Set window flags for FREE mode")
         
         # Get current screen based on mouse position
         cursor_pos = QApplication.desktop().cursor().pos()
@@ -234,13 +296,16 @@ class TutorView(QWidget):
         if self.mode == ViewMode.FREE:
             width = min(int(self.screen_width * 0.7), self.screen_hint.preferred_width or self.screen_width)
             height = min(int(self.screen_height * 0.4), self.screen_hint.preferred_height or self.screen_height)
+            self.logger.info(f"DEBUG: FREE mode dimensions: {width}x{height}")
         else:
             if self.position in [DockPosition.LEFT, DockPosition.RIGHT]:
                 width = min(self.screen_width // 3, self.screen_hint.preferred_width or self.screen_width)
                 height = self.screen_height
+                self.logger.info(f"DEBUG: DOCKED LEFT/RIGHT dimensions: {width}x{height}")
             else:
                 width = self.screen_width
                 height = min(self.screen_height // 3, self.screen_hint.preferred_height or self.screen_height)
+                self.logger.info(f"DEBUG: DOCKED TOP/BOTTOM dimensions: {width}x{height}")
                 
         return width, height
         
@@ -248,6 +313,9 @@ class TutorView(QWidget):
         """Apply screen positioning hints"""
         width, height = self.get_dimensions()
         self.expanded_size = QSize(width, height)
+        
+        self.logger.info(f"DEBUG: Screen geometry: {self.screen_width}x{self.screen_height} at ({self.screen_x}, {self.screen_y})")
+        self.logger.info(f"DEBUG: Calculated dimensions: {width}x{height}")
         
         # Set collapsed size based on orientation
         if self.mode == ViewMode.DOCKED:
@@ -260,19 +328,24 @@ class TutorView(QWidget):
         if self.mode == ViewMode.FREE:
             x = self.screen_x + (self.screen_width - width) // 2
             y = self.screen_y + (self.screen_height - height) // 2
+            self.logger.info(f"DEBUG: FREE mode position: ({x}, {y})")
         else:
             if self.position == DockPosition.TOP:
                 x = self.screen_x
                 y = self.screen_y
+                self.logger.info(f"DEBUG: DOCKED TOP position: ({x}, {y})")
             elif self.position == DockPosition.BOTTOM:
                 x = self.screen_x
                 y = self.screen_y + self.screen_height - height
+                self.logger.info(f"DEBUG: DOCKED BOTTOM position: ({x}, {y})")
             elif self.position == DockPosition.LEFT:
                 x = self.screen_x
                 y = self.screen_y
+                self.logger.info(f"DEBUG: DOCKED LEFT position: ({x}, {y})")
             else:  # RIGHT
                 x = self.screen_x + self.screen_width - width
                 y = self.screen_y
+                self.logger.info(f"DEBUG: DOCKED RIGHT position: ({x}, {y})")
         
         self.setGeometry(x, y, width, height)
 
@@ -375,17 +448,41 @@ class TutorView(QWidget):
     
     def change_dock_mode(self, new_mode: ViewMode, new_position: Optional[DockPosition] = None):
         """Change the dock mode and position of the window by creating a new instance with overridden ScreenHint"""
+        self.logger.info(f"DEBUG: change_dock_mode called with new_mode={new_mode}, new_position={new_position}")
+        self.logger.info(f"DEBUG: Current mode={self.mode}, position={self.position}")
+        
         if new_mode == self.mode and (new_mode == ViewMode.FREE or new_position == self.position):
+            self.logger.info("DEBUG: No change needed, returning early")
             return
+        
+        # Check for Wayland when switching to dock mode
+        if new_mode == ViewMode.DOCKED and self.is_wayland():
+            self.logger.info("DEBUG: Switching to dock mode on Wayland, showing warning")
+            if not self.show_wayland_warning():
+                # User chose to stay in dock mode, but warn them again
+                pass
+            else:
+                # User chose free mode instead, change the request
+                new_mode = ViewMode.FREE
+                new_position = None
+                self.logger.info("DEBUG: User chose free mode instead of dock mode on Wayland")
             
         # Create a new unit with overridden screen hint
-        modified_unit = self.unit
+        # Instead of modifying the original unit, create a copy if it's LessonMetadata
+        if isinstance(self.unit, LessonMetadata):
+            import copy
+            modified_unit = copy.deepcopy(self.unit)
+        else:
+            modified_unit = self.unit
+            
         modified_unit.screen_hint = ScreenHint(
             position=new_position or self.position,
             mode=new_mode,
             preferred_width=self.screen_hint.preferred_width,
             preferred_height=self.screen_hint.preferred_height
         )
+        
+        self.logger.info(f"DEBUG: Modified unit screen_hint: position={modified_unit.screen_hint.position}, mode={modified_unit.screen_hint.mode}")
         
         current_url = self.current_url
         
@@ -404,7 +501,6 @@ class TutorView(QWidget):
             
         # Close this window
         self.close()
-
 
     def handle_external_link(self, url: str) -> None:
         """Handle clicks on external links"""
