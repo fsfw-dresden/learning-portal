@@ -22,12 +22,12 @@ build-backend = "hatchling.build"
 
 
 [project.gui-scripts]
-vision-assistant = "vision_assistant.main:main"
-welcome = "welcome.main:main"
-icon-finder = "helper.icon_finder:main"
-portal = "portal.main:main"
-tutor = "tutor.main:main"
-dataclass-forms-demo = "dataclass_forms.demo:main"
+learning-portal-vision-assistant = "vision_assistant.main:main"
+learning-portal-welcome = "welcome.main:main"
+learning-portal-icon-finder = "helper.icon_finder:main"
+learning-portal = "portal.main:main"
+learning-portal-tutor = "tutor.main:main"
+learning-portal-dataclass-forms-demo = "dataclass_forms.demo:main"
 
 [project.scripts]
 release = "helper.release:main"
