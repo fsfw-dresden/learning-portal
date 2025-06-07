@@ -1,3 +1,36 @@
+# 0.1.6 (2025-06-07)
+
+## Summary
+This release brings significant improvements to the portal's publishing capabilities, enhanced form handling, and better course management features. It also introduces a new translation system and improves the user interface with better theme support and navigation.
+
+## Features
+- Added a complete course publishing system with SSH key management and remote repository support
+- Implemented a new translation management system for all modules (portal, tutor, welcome, vision assistant)
+- Added a course editor with advanced form generation capabilities
+- Introduced new course and lesson metadata handling
+- Added view switching between Unit Finder and Unit Browser
+- Implemented course collections and improved course display
+- Added play button overlay for lesson playback
+- Added "Open Folder" action to unit context menu
+- Added reload button to rescan units collection
+- Added lesson creation with directory and markdown template generation
+
+## Fixes
+- Improved dark/light theme compatibility for labels and buttons
+- Fixed SSH key selection and wizard finish button issues
+- Resolved various form generator issues with nested dataclasses
+- Fixed web view resource cleanup on close
+- Corrected default Gitolite username configuration
+- Fixed editor URL configuration issues
+- Improved UI responsiveness by moving publishing to background thread
+
+## Other Changes
+- Added Wayland detection and warning dialog
+- Updated nixpkgs to version 24.11
+- Added flake8 for improved code quality checks
+- Improved code organization and removed unused code
+- Enhanced form field validation and metadata handling
+
 # 0.1.5 (2024-12-11)
 
 ## Summary
