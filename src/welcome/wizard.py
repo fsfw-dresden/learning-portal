@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout,
                             QLabel, QRadioButton, QButtonGroup, QGridLayout,
                             QWidget, QPushButton, QApplication, QLineEdit)
 from PyQt5.QtGui import QIntValidator
-from core.preferences import Gender
+from core.preferences import APP_NAME, Gender
 from welcome.components.star_rating import StarRating
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon
@@ -235,7 +235,7 @@ class WelcomeWizard(QWizard):
         self.preferences = Preferences.load()
         self.logger.info(f"Loaded preferences from: {Preferences._get_config_path()}")
         
-        self.setWindowTitle("Schulstick")
+        self.setWindowTitle(tr(APP_NAME))
         self.setWizardStyle(QWizard.ModernStyle)
         
         # Add pages

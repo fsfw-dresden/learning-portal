@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QToolBar,
                             QVBoxLayout, QAction, QSizePolicy, QStackedWidget)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
+from core.preferences import APP_NAME
 from welcome.wizard import WelcomeWizard
 from portal.unit_finder import UnitFinderWidget
 from portal.course_browser import UnitBrowserWidget
@@ -21,7 +22,7 @@ class PortalWindow(QMainWindow):
         from core.translation import load_module_translations
         load_module_translations("portal")
         
-        self.setWindowTitle("Schulstick Portal")
+        self.setWindowTitle(tr(APP_NAME))
         self.resize(1024, 768)
         
         # Create central widget and layout
